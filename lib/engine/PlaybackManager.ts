@@ -123,8 +123,8 @@ export class PlaybackManager {
             // Snap if tab was backgrounded or large desync
             this._visualTime = trueAudioTime
         } else {
-            // Soft sync — absorb 20% of drift per frame
-            this._visualTime += drift * 0.2
+            // MICRO-SYNC: Only absorb 1% of the drift per frame to eliminate sawtooth jitter.
+            this._visualTime += drift * 0.01
         }
 
         if (this._visualTime >= this._duration) return this._duration

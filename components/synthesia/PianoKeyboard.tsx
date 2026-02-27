@@ -51,13 +51,13 @@ const BLACK_KEYS = KEYBOARD_LAYOUT.filter(k => k.isBlack)
 const getBlackKeyPosition = (whiteKeyIndex: number, noteInOctave: number): number => {
   // Each white key is 100%/52 wide
   const whiteKeyWidth = 100 / 52
-  
+
   // Base position: right edge of the white key before the black key
   const basePosition = (whiteKeyIndex + 1) * whiteKeyWidth
-  
+
   // Black key width is 60% of white key width
   const blackKeyWidth = whiteKeyWidth * 0.6
-  
+
   // Center the black key on the seam, with slight adjustments for visual accuracy
   // Different black keys have slightly different offsets in a real piano
   let offset = 0
@@ -78,11 +78,11 @@ const getBlackKeyPosition = (whiteKeyIndex: number, noteInOctave: number): numbe
       offset = 0.1
       break
   }
-  
+
   return basePosition - (blackKeyWidth / 2) + (offset * whiteKeyWidth)
 }
 
-export const PianoKeyboard = React.forwardRef<HTMLDivElement>((_, ref) => {
+const PianoKeyboardBase = React.forwardRef<HTMLDivElement>((_, ref) => {
   return (
     <div
       ref={ref}
@@ -163,6 +163,6 @@ export const PianoKeyboard = React.forwardRef<HTMLDivElement>((_, ref) => {
   )
 })
 
-PianoKeyboard.displayName = 'PianoKeyboard'
-
+PianoKeyboardBase.displayName = 'PianoKeyboard'
+export const PianoKeyboard = React.memo(PianoKeyboardBase)
 export default PianoKeyboard

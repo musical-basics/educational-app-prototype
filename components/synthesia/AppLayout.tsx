@@ -326,7 +326,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
       </div>
 
       {/* Piano Keyboard */}
-      <PianoKeyboard ref={containerRef} />
+      <PianoKeyboard />
 
       {/* Transport Bar Controls */}
       <TransportBar

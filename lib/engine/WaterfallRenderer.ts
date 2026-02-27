@@ -233,11 +233,14 @@ export class WaterfallRenderer {
         const windowStart = time - 0.5
         const windowEnd = time + lookaheadSec
 
+        // We MUST search by startTimeSec because the array is sorted by startTimeSec.
+        // Look back 10 seconds to catch any long-held notes that started in the past.
+        const searchTime = Math.max(0, windowStart - 10.0)
         let lo = 0
         let hi = notes.length
         while (lo < hi) {
             const mid = (lo + hi) >>> 1
-            if (notes[mid].endTimeSec < windowStart) {
+            if (notes[mid].startTimeSec < searchTime) {
                 lo = mid + 1
             } else {
                 hi = mid
@@ -247,7 +250,12 @@ export class WaterfallRenderer {
         // ─── Render visible notes ──────────────────────────────────
         for (let i = lo; i < notes.length; i++) {
             const note = notes[i]
+
+            // Safe to break because array is properly sorted by startTimeSec
             if (note.startTimeSec > windowEnd) break
+
+            // Skip notes that already ended before our look-behind window
+            if (note.endTimeSec < windowStart) continue
 
             // Track muting
             if (!this.rightHandActive && note.trackId === 0) continue
@@ -269,11 +277,11 @@ export class WaterfallRenderer {
             const sprite = this.notePool.acquire()
             if (!sprite) break
 
-            // ─── Position (all primitive assignments) ────────────────
-            sprite.x = this.keyX[note.pitch]
-            sprite.y = noteTopY
-            sprite.width = this.keyW[note.pitch]
-            sprite.height = Math.max(noteHeight, 3)
+            // ─── Position (integer snapping) ────────────────
+            sprite.x = Math.round(this.keyX[note.pitch])
+            sprite.y = Math.round(noteTopY)
+            sprite.width = Math.round(this.keyW[note.pitch])
+            sprite.height = Math.max(Math.round(noteHeight), 12) // Min 12px protects border radius
 
             // ─── Color & active state ────────────────────────────────
             const color = TRACK_COLORS[note.trackId] ?? DEFAULT_COLOR
