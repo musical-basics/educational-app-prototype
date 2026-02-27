@@ -8,6 +8,7 @@ import { useSynthStore } from '@/lib/store'
 import { parseMidiFile } from '@/lib/midi/parser'
 import { getPlaybackManager, destroyPlaybackManager } from '@/lib/engine/PlaybackManager'
 import { AudioSynth } from '@/lib/engine/AudioSynth'
+import type { WaterfallRenderer } from '@/lib/engine/WaterfallRenderer'
 
 interface AppLayoutProps {
   canvasContainerRef?: React.RefObject<HTMLDivElement | null>
@@ -31,40 +32,87 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
 
   // ─── Refs (never trigger re-renders) ────────────────────────────
   const audioSynthRef = React.useRef<AudioSynth | null>(null)
+  const rendererRef = React.useRef<WaterfallRenderer | null>(null)
+  const rendererInitialized = React.useRef(false)
   const schedulerTimerRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
   const displayRafRef = React.useRef<number>(0)
 
   // Display time state — updated via rAF at ~15fps for transport bar
   const [displayTime, setDisplayTime] = React.useState(0)
+  const [rendererReady, setRendererReady] = React.useState(false)
 
-  // ─── PlaybackManager Setup ──────────────────────────────────────
-  // Cleanup on unmount (React Strict Mode safe)
+  // ─── Canvas Container Ref ──────────────────────────────────────
+  const internalCanvasRef = React.useRef<HTMLDivElement>(null)
+  const containerRef = canvasContainerRef || internalCanvasRef
+
+  // ─── Initialize WaterfallRenderer (dynamic import, SSR-safe) ────
+  React.useEffect(() => {
+    if (rendererInitialized.current) return
+    rendererInitialized.current = true
+
+    const initRenderer = async () => {
+      const container = document.getElementById('pixi-canvas-container')
+      if (!container) return
+
+      try {
+        // Dynamic import to avoid "window is undefined" SSR crash
+        const { WaterfallRenderer: WR } = await import('@/lib/engine/WaterfallRenderer')
+        const pm = getPlaybackManager()
+        const renderer = new WR(container, pm)
+        await renderer.init()
+        rendererRef.current = renderer
+        setRendererReady(true)
+        console.log('[SynthUI] Renderer mounted and ready')
+      } catch (err) {
+        console.error('[SynthUI] Failed to initialize renderer:', err)
+      }
+    }
+
+    initRenderer()
+
+    return () => {
+      // Cleanup on unmount (React Strict Mode safe)
+      if (rendererRef.current) {
+        rendererRef.current.destroy()
+        rendererRef.current = null
+      }
+      rendererInitialized.current = false
+      setRendererReady(false)
+    }
+  }, [])
+
+  // ─── Cleanup on unmount ─────────────────────────────────────────
   React.useEffect(() => {
     return () => {
-      // Stop any rAF loop
       if (displayRafRef.current) cancelAnimationFrame(displayRafRef.current)
-      // Stop scheduler
       if (schedulerTimerRef.current) clearInterval(schedulerTimerRef.current)
-      // Destroy audio
       audioSynthRef.current?.destroy()
       audioSynthRef.current = null
-      // Destroy PlaybackManager
       destroyPlaybackManager()
     }
   }, [])
 
+  // ─── Sync track visibility to renderer ──────────────────────────
+  React.useEffect(() => {
+    rendererRef.current?.setTrackVisibility(leftHandActive, rightHandActive)
+  }, [leftHandActive, rightHandActive])
+
+  // ─── Sync MIDI data to renderer ─────────────────────────────────
+  React.useEffect(() => {
+    if (parsedMidi && rendererRef.current) {
+      rendererRef.current.loadNotes(parsedMidi)
+    }
+  }, [parsedMidi, rendererReady])
+
   // ─── Display Time Update Loop ───────────────────────────────────
-  // Polls PlaybackManager at ~30fps for transport bar display
   React.useEffect(() => {
     let frameCount = 0
     const tick = () => {
       frameCount++
-      // Update React state at ~15fps (every other frame at 30fps)
       if (frameCount % 2 === 0) {
         const pm = getPlaybackManager()
         setDisplayTime(pm.getTime())
 
-        // Sync isPlaying state if PlaybackManager stopped (end of song)
         if (!pm.isPlaying && isPlaying) {
           setPlaying(false)
         }
@@ -85,7 +133,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
   }, [isPlaying, setPlaying])
 
   // ─── Audio Note Scheduler ───────────────────────────────────────
-  // Schedules notes in batches every 500ms while playing
   React.useEffect(() => {
     if (!isPlaying || !parsedMidi) return
 
@@ -95,8 +142,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
       if (!synth?.loaded || !pm.isPlaying) return
 
       const mutedTracks = new Set<number>()
-      // Track 0 is typically right hand, Track 1 is left hand
-      // (convention: lower track index = treble/right)
       if (!rightHandActive && parsedMidi.trackCount > 0) mutedTracks.add(0)
       if (!leftHandActive && parsedMidi.trackCount > 1) mutedTracks.add(1)
 
@@ -110,7 +155,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
       )
     }
 
-    // Schedule immediately and then every 2 seconds
     scheduleChunk()
     schedulerTimerRef.current = setInterval(scheduleChunk, 2000)
 
@@ -139,10 +183,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
       loadMidi(parsed)
       setDisplayTime(0)
 
-      // Update PlaybackManager duration
       const pm = getPlaybackManager()
       pm.duration = parsed.durationSec
       pm.seek(0)
+
+      // Load notes into renderer
+      rendererRef.current?.loadNotes(parsed)
 
       // Initialize audio on first user interaction (autoplay policy)
       if (!audioSynthRef.current) {
@@ -153,12 +199,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
       }
 
       console.log('[SynthUI] MIDI loaded:', parsed.name, `${parsed.notes.length} notes, ${parsed.durationSec.toFixed(1)}s`)
-      console.log('[SynthUI] Tracks:', parsed.trackCount, '| Tempo changes:', parsed.tempoChanges.length)
     } catch (err) {
       console.error('[SynthUI] Failed to parse MIDI file:', err)
     }
 
-    // Reset input so re-selecting the same file triggers onChange
     e.target.value = ''
   }
 
@@ -171,7 +215,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
       audioSynthRef.current?.stopAll()
       setPlaying(false)
     } else {
-      // Initialize audio if not done yet (first play after load)
       if (!audioSynthRef.current) {
         await pm.ensureResumed()
         const synth = new AudioSynth(pm.getAudioContext())
@@ -217,10 +260,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
     console.log('[SynthUI] Settings clicked')
   }
 
-  // ─── Canvas Container Ref ──────────────────────────────────────
-  const internalCanvasRef = React.useRef<HTMLDivElement>(null)
-  const containerRef = canvasContainerRef || internalCanvasRef
-
   return (
     <div className="h-screen w-screen overflow-hidden bg-zinc-950 text-slate-200 flex flex-col">
       {/* Hidden file input for MIDI loading */}
@@ -246,17 +285,19 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
           ref={containerRef}
           className="relative w-full h-full z-0 bg-black/50"
         >
-          {/* Placeholder visual - removed when PixiJS engine mounts in Phase 5 */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-center space-y-4 opacity-30">
-              <div className="w-16 h-16 mx-auto rounded-full border-2 border-dashed border-zinc-600 flex items-center justify-center">
-                <div className="w-3 h-3 rounded-full bg-purple-500 animate-pulse" />
+          {/* Placeholder - hidden once renderer is ready */}
+          {!rendererReady && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="text-center space-y-4 opacity-30">
+                <div className="w-16 h-16 mx-auto rounded-full border-2 border-dashed border-zinc-600 flex items-center justify-center">
+                  <div className="w-3 h-3 rounded-full bg-purple-500 animate-pulse" />
+                </div>
+                <p className="text-zinc-600 text-sm font-medium">
+                  Initializing engine...
+                </p>
               </div>
-              <p className="text-zinc-600 text-sm font-medium">
-                {songTitle ? 'Engine ready — Press Play' : 'Load a MIDI file to begin'}
-              </p>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
