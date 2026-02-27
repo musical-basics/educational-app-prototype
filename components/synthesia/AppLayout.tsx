@@ -125,8 +125,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
   // The PixiJS renderer polls PlaybackManager directly at 60fps independently.
   React.useEffect(() => {
     const tick = (timestamp: number) => {
-      // Only update React state every 200ms (~5fps) to minimize re-renders
-      if (timestamp - lastDisplayUpdateRef.current > 200) {
+      // Only update React state every 500ms (~2fps) to minimize main-thread re-renders
+      if (timestamp - lastDisplayUpdateRef.current > 500) {
         lastDisplayUpdateRef.current = timestamp
         const pm = getPlaybackManager()
         const currentT = pm.getTime()
@@ -174,7 +174,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
         mutedTracks
       )
 
-      if (count > 0) {
+      if (count > 0 && false) { // Disabled: console.log stalls the main thread
         console.log(`[SynthUI Audio] Scheduled ${count} notes`)
       }
     }

@@ -104,16 +104,34 @@ export class AudioSynth {
         const ctx = this.audioContext
         let scheduled = 0
 
-        for (const note of notes) {
+        // Binary search: find first note that starts at or after current position
+        // Notes are sorted by startTimeSec
+        const searchStart = songOffset - 0.1
+        let lo = 0
+        let hi = notes.length
+        while (lo < hi) {
+            const mid = (lo + hi) >>> 1
+            if (notes[mid].startTimeSec < searchStart) {
+                lo = mid + 1
+            } else {
+                hi = mid
+            }
+        }
+
+        // Only iterate notes in the scheduling window
+        const maxLookahead = ctx.currentTime + 4
+        for (let i = lo; i < notes.length; i++) {
+            const note = notes[i]
+            const noteStartInSong = note.startTimeSec - songOffset
+            const ctxTime = songStartCtxTime + (noteStartInSong / playbackRate)
+
+            // Past scheduling window — stop scanning
+            if (ctxTime > maxLookahead) break
+
             if (mutedTracks.has(note.trackId)) continue
             if (this.scheduledNotes.has(note.id)) continue
             if (note.endTimeSec <= songOffset) continue
-
-            const noteStartInSong = note.startTimeSec - songOffset
             if (noteStartInSong < -0.1) continue
-
-            const ctxTime = songStartCtxTime + (noteStartInSong / playbackRate)
-            if (ctxTime > ctx.currentTime + 4) continue
 
             const duration = note.durationSec / playbackRate
 

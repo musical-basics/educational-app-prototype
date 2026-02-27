@@ -328,12 +328,12 @@ export class WaterfallRenderer {
             }
         }
 
-        // ─── FPS Diagnostic ────────────────────────────────────────
+        // ─── FPS Diagnostic (silent — enable console.log below to debug) ──
         this.frameCount++
         const now = performance.now()
         if (now - this.lastFpsTime >= 2000) {
-            const fps = (this.frameCount / ((now - this.lastFpsTime) / 1000)).toFixed(1)
-            console.log(`[FPS] ${fps}fps`)
+            // const fps = (this.frameCount / ((now - this.lastFpsTime) / 1000)).toFixed(1)
+            // console.log(`[FPS] ${fps}fps`)  // Uncomment to debug FPS
             this.frameCount = 0
             this.lastFpsTime = now
         }
