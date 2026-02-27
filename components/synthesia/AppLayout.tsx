@@ -36,7 +36,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
   // ─── Refs (never trigger re-renders) ────────────────────────────
   const audioSynthRef = React.useRef<AudioSynth | null>(null)
   const rendererRef = React.useRef<WaterfallRenderer | null>(null)
-  const rendererInitialized = React.useRef(false)
   const schedulerTimerRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
   const displayRafRef = React.useRef<number>(0)
   const lastDisplayUpdateRef = React.useRef<number>(0)
@@ -51,8 +50,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
 
   // ─── Initialize WaterfallRenderer (dynamic import, SSR-safe) ────
   React.useEffect(() => {
-    if (rendererInitialized.current) return
-    rendererInitialized.current = true
+    let isCancelled = false
+    let localRenderer: WaterfallRenderer | null = null
 
     const initRenderer = async () => {
       const container = document.getElementById('pixi-canvas-container')
@@ -60,10 +59,18 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
 
       try {
         const { WaterfallRenderer: WR } = await import('@/lib/engine/WaterfallRenderer')
+        if (isCancelled) return
         const pm = getPlaybackManager()
-        const renderer = new WR(container, pm)
-        await renderer.init()
-        rendererRef.current = renderer
+        localRenderer = new WR(container, pm)
+        await localRenderer.init()
+
+        // CRITICAL FIX: If React unmounted us while waiting, destroy the phantom canvas immediately!
+        if (isCancelled) {
+          if (localRenderer) localRenderer.destroy()
+          return
+        }
+
+        rendererRef.current = localRenderer
         setRendererReady(true)
         console.log('[SynthUI] Renderer mounted and ready')
       } catch (err) {
@@ -74,11 +81,17 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
     initRenderer()
 
     return () => {
+      isCancelled = true // Prevent the async block from applying if it hasn't finished
+
       if (rendererRef.current) {
         rendererRef.current.destroy()
         rendererRef.current = null
+      } else if (localRenderer) {
+        // Catch the race condition where init finished but ref wasn't set
+        localRenderer.destroy()
+        localRenderer = null
       }
-      rendererInitialized.current = false
+
       setRendererReady(false)
     }
   }, [])

@@ -153,6 +153,12 @@ export class WaterfallRenderer {
         if (!this.app) return
 
         const rect = this.canvasContainer.getBoundingClientRect()
+
+        // CRITICAL: Prevent infinite layout reflow thrashing
+        if (this.canvasWidth === rect.width && this.canvasHeight === rect.height) {
+            return
+        }
+
         this.canvasWidth = rect.width
         this.canvasHeight = rect.height
         this.strikeLineY = this.canvasHeight - 4
@@ -277,11 +283,15 @@ export class WaterfallRenderer {
             const sprite = this.notePool.acquire()
             if (!sprite) break
 
-            // ─── Position (integer snapping) ────────────────
-            sprite.x = Math.round(this.keyX[note.pitch])
-            sprite.y = Math.round(noteTopY)
-            sprite.width = Math.round(this.keyW[note.pitch])
-            sprite.height = Math.max(Math.round(noteHeight), 12) // Min 12px protects border radius
+            // ─── Position (Sub-pixel Y for 120Hz smooth scrolling) ────────────────
+            sprite.x = Math.round(this.keyX[note.pitch]) // X stays rounded to align with CSS keys
+            sprite.y = noteTopY // NO ROUNDING HERE! Let WebGL interpolate sub-pixels.
+
+            // NineSlice optimization: only assign dimensions if changed to prevent vertex rebuilding
+            const w = Math.round(this.keyW[note.pitch])
+            const h = Math.max(noteHeight, 12)
+            if (sprite.width !== w) sprite.width = w
+            if (sprite.height !== h) sprite.height = h
 
             // ─── Color & active state ────────────────────────────────
             const color = TRACK_COLORS[note.trackId] ?? DEFAULT_COLOR
