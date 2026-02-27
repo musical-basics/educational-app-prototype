@@ -34,6 +34,9 @@ export class AudioSynth {
     // Master gain node for instant stop
     private masterGain: GainNode
 
+    // Dedup: track which notes have already been scheduled
+    private scheduledNotes = new Set<string>()
+
     constructor(audioContext: AudioContext) {
         this.audioContext = audioContext
         // Create a master gain node between smplr output and destination
@@ -103,6 +106,7 @@ export class AudioSynth {
 
         for (const note of notes) {
             if (mutedTracks.has(note.trackId)) continue
+            if (this.scheduledNotes.has(note.id)) continue
             if (note.endTimeSec <= songOffset) continue
 
             const noteStartInSong = note.startTimeSec - songOffset
@@ -121,6 +125,7 @@ export class AudioSynth {
                     duration: Math.max(duration, 0.05),
                 })
                 scheduled++
+                this.scheduledNotes.add(note.id)
             } catch {
                 // Ignore
             }
@@ -149,6 +154,9 @@ export class AudioSynth {
                 // Ignore
             }
         }
+
+        // Clear dedup set so notes can be re-scheduled after stop/seek
+        this.scheduledNotes.clear()
     }
 
     setVolume(v: number): void {

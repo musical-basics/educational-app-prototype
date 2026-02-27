@@ -213,7 +213,7 @@ export class WaterfallRenderer {
     private renderFrame(): void {
         if (!this.notePool || this.notes.length === 0) return
 
-        const time = this.playbackManager.getTime()
+        const time = this.playbackManager.getVisualTime()
         const pps = this.pixelsPerSecond
         const strikeY = this.strikeLineY
         const canvasH = this.canvasHeight

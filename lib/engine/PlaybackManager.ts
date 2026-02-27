@@ -3,8 +3,9 @@
  *
  * CRITICAL DESIGN RULES:
  * 1. This class is NEVER stored in React state
- * 2. logicalPlaybackTime is derived from AudioContext.currentTime (hardware clock)
- * 3. Never use requestAnimationFrame delta time for sync
+ * 2. getTime() = audio-driven (for AudioSynth scheduling, authoritative)
+ * 3. getVisualTime() = performance.now()-driven with soft-sync to audio clock
+ *    (for PixiJS renderer — eliminates audio clock quantization jitter)
  * 4. AudioContext is only created/resumed on user interaction (autoplay policy)
  */
 
@@ -20,6 +21,10 @@ export class PlaybackManager {
     private _songPosition = 0 // Where we are in the song (seconds)
     private _playStartedAtCtx = 0 // AudioContext.currentTime when play was pressed
     private _playbackRate = 1.0
+
+    // Hybrid visual clock (performance.now()-based, soft-synced to audio)
+    private _visualTime = 0
+    private _lastVisualTick = 0
 
     // Song data
     private _duration = 0
@@ -69,7 +74,7 @@ export class PlaybackManager {
 
     /**
      * Get the current logical playback time in seconds.
-     * This is the ABSOLUTE SOURCE OF TRUTH for visual sync.
+     * Audio-driven — used by AudioSynth for scheduling.
      */
     getTime(): number {
         if (!this._isPlaying || !this.audioContext) {
@@ -91,6 +96,42 @@ export class PlaybackManager {
     }
 
     /**
+     * Get smooth visual playback time for the PixiJS renderer.
+     * Uses performance.now() for butter-smooth frame interpolation,
+     * soft-synced to the audio clock via rubber-banding to prevent drift.
+     *
+     * ONLY used by WaterfallRenderer. AudioSynth uses getTime().
+     */
+    getVisualTime(): number {
+        if (!this._isPlaying || !this.audioContext) {
+            return this._songPosition
+        }
+
+        // 1. Raw audio time (authoritative but quantized)
+        const audioElapsed = (this.audioContext.currentTime - this._playStartedAtCtx) * this._playbackRate
+        const trueAudioTime = this._songPosition + audioElapsed
+
+        // 2. Smooth visual time (high-precision, every frame)
+        const now = performance.now()
+        const deltaSec = (now - this._lastVisualTick) / 1000
+        this._lastVisualTick = now
+        this._visualTime += deltaSec * this._playbackRate
+
+        // 3. Drift correction (rubber-band to audio clock)
+        const drift = trueAudioTime - this._visualTime
+        if (Math.abs(drift) > 0.05) {
+            // Snap if tab was backgrounded or large desync
+            this._visualTime = trueAudioTime
+        } else {
+            // Soft sync — absorb 20% of drift per frame
+            this._visualTime += drift * 0.2
+        }
+
+        if (this._visualTime >= this._duration) return this._duration
+        return this._visualTime
+    }
+
+    /**
      * Start or resume playback from current position.
      */
     async play(): Promise<void> {
@@ -100,6 +141,9 @@ export class PlaybackManager {
         const ctx = this.getAudioContext()
 
         this._playStartedAtCtx = ctx.currentTime
+        // Sync visual clock
+        this._lastVisualTick = performance.now()
+        this._visualTime = this._songPosition
         this._isPlaying = true
         this.notifyListeners()
     }
@@ -112,6 +156,7 @@ export class PlaybackManager {
 
         // Capture current position before stopping
         this._songPosition = this.getTime()
+        this._visualTime = this._songPosition
         this._isPlaying = false
         this.notifyListeners()
     }
@@ -121,6 +166,7 @@ export class PlaybackManager {
      */
     stop(): void {
         this._songPosition = 0
+        this._visualTime = 0
         this._isPlaying = false
         this.notifyListeners()
     }
@@ -138,7 +184,10 @@ export class PlaybackManager {
         if (wasPlaying && this.audioContext) {
             // Reset the play reference point
             this._playStartedAtCtx = this.audioContext.currentTime
+            // Sync visual clock
+            this._lastVisualTick = performance.now()
         }
+        this._visualTime = this._songPosition
 
         this.notifyListeners()
     }
@@ -153,6 +202,9 @@ export class PlaybackManager {
             if (this.audioContext) {
                 this._playStartedAtCtx = this.audioContext.currentTime
             }
+            // Sync visual clock
+            this._lastVisualTick = performance.now()
+            this._visualTime = this._songPosition
         }
         this._playbackRate = rate
     }
