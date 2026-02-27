@@ -1,71 +1,79 @@
 /**
- * WaterfallRenderer — PixiJS Canvas + High-Performance Render Loop
+ * WaterfallRenderer — PixiJS Canvas + Zero-Allocation Render Loop
  *
- * CRITICAL RULES:
- * 1. Uses PIXI.Ticker tied to monitor refresh rate (60/120 FPS)
- * 2. Polls PlaybackManager.getTime() for absolute sync
- * 3. Binary search culling — only draw visible notes
- * 4. Object pool — zero allocations in render loop
- * 5. Additive blend + glow for strike-line collision
+ * PERFORMANCE RULES:
+ * 1. ZERO object allocations in renderFrame() — all reusable vars pre-allocated
+ * 2. DOM key elements cached at init — no getElementById in hot loop
+ * 3. Binary search culling — only process visible notes
+ * 4. Object pool — sprite acquire/release with no new/destroy
+ * 5. All per-frame math uses pre-allocated primitives
  */
 
-import { Application, Graphics, Container, BlurFilter } from 'pixi.js'
+import { Application, Graphics, Container } from 'pixi.js'
 import type { NoteEvent, ParsedMidi } from '../types'
 import { NotePool } from './NotePool'
 import {
     calculatePianoMetricsFromDOM,
     calculatePianoMetrics,
-    getNoteX,
     isBlackKey,
+    MIDI_MIN,
+    MIDI_MAX,
     type PianoMetrics,
 } from './pianoMetrics'
-import { getNoteRect, isNoteActive, getLookaheadSeconds } from './waterfallMath'
 import type { PlaybackManager } from './PlaybackManager'
 
-// ─── Track Colors (Left hand = blue, Right hand = green) ────────
+// ─── Track Colors ────────────────────────────────────────────────
 
-const TRACK_COLORS: Record<number, number> = {
-    0: 0x22c55e, // Green (right hand / treble)
-    1: 0x3b82f6, // Blue (left hand / bass)
-    2: 0xf59e0b, // Amber (extra track)
-    3: 0xef4444, // Red (extra track)
-    4: 0xa855f7, // Purple (extra track)
-}
+const TRACK_COLORS: number[] = [
+    0x22c55e, // Track 0: Green (right hand / treble)
+    0x3b82f6, // Track 1: Blue (left hand / bass)
+    0xf59e0b, // Track 2: Amber
+    0xef4444, // Track 3: Red
+    0xa855f7, // Track 4: Purple
+]
+const DEFAULT_COLOR = 0xa855f7
 
-const ACTIVE_GLOW_ALPHA = 0.8
-const INACTIVE_ALPHA = 0.85
+const ACTIVE_ALPHA = 0.95
+const INACTIVE_ALPHA = 0.75
 
 export class WaterfallRenderer {
     private app: Application | null = null
     private notePool: NotePool | null = null
     private playbackManager: PlaybackManager
-    private pianoMetrics: PianoMetrics | null = null
 
     // Canvas config
     private canvasContainer: HTMLElement
-    private pianoContainer: HTMLElement | null = null
     private resizeObserver: ResizeObserver | null = null
 
-    // Render state
+    // Pre-computed layout (no per-frame allocation)
     private pixelsPerSecond = 200
     private strikeLineY = 0
     private canvasHeight = 0
     private canvasWidth = 0
 
+    // Piano metrics (recomputed on resize only)
+    private keyX: Float64Array = new Float64Array(128) // indexed by MIDI pitch
+    private keyW: Float64Array = new Float64Array(128) // indexed by MIDI pitch
+    private keyValid: Uint8Array = new Uint8Array(128) // 1 = valid
+
     // Strike line visual
     private strikeLineGraphics: Graphics | null = null
 
-    // Active notes tracking for key bridge
-    private activeNotes = new Set<number>()
-    private previousActiveNotes = new Set<number>()
+    // ─── CACHED DOM ELEMENTS (no getElementById in hot loop) ──────
+    private keyElements: (HTMLElement | null)[] = new Array(128).fill(null)
+
+    // Active notes tracking — pre-allocated typed arrays for zero GC
+    // Use Uint8Arrays indexed by MIDI pitch (128 values) instead of Sets
+    private activeThisFrame: Uint8Array = new Uint8Array(128)
+    private activeLastFrame: Uint8Array = new Uint8Array(128)
 
     // Data
     private notes: NoteEvent[] = []
     private leftHandActive = true
     private rightHandActive = true
 
-    // Glow filter for active notes
-    private glowFilter: BlurFilter | null = null
+    // Bound render function (avoid re-binding per frame)
+    private boundRenderFrame: () => void
 
     constructor(
         canvasContainer: HTMLElement,
@@ -73,13 +81,13 @@ export class WaterfallRenderer {
     ) {
         this.canvasContainer = canvasContainer
         this.playbackManager = playbackManager
+        this.boundRenderFrame = this.renderFrame.bind(this)
     }
 
     /**
      * Initialize the PixiJS application and mount it into the container.
      */
     async init(): Promise<void> {
-        // ─── Create PixiJS Application ─────────────────────────────
         this.app = new Application()
 
         await this.app.init({
@@ -92,7 +100,7 @@ export class WaterfallRenderer {
             resizeTo: this.canvasContainer,
         })
 
-        // Mount canvas into the DOM container
+        // Mount canvas
         const canvas = this.app.canvas as HTMLCanvasElement
         canvas.style.position = 'absolute'
         canvas.style.top = '0'
@@ -101,31 +109,41 @@ export class WaterfallRenderer {
         canvas.style.height = '100%'
         this.canvasContainer.appendChild(canvas)
 
-        // ─── Create Strike Line ────────────────────────────────────
+        // Strike line
         this.strikeLineGraphics = new Graphics()
         this.strikeLineGraphics.label = 'strike-line'
         this.app.stage.addChild(this.strikeLineGraphics)
 
-        // ─── Create Note Pool ──────────────────────────────────────
+        // Note pool
         this.notePool = new NotePool(this.app, 1500)
         await this.notePool.init()
 
-        // ─── Create Glow Filter ────────────────────────────────────
-        this.glowFilter = new BlurFilter({ strength: 4, quality: 2 })
+        // Cache all piano key DOM elements
+        this.cacheKeyElements()
 
-        // ─── Initial Size Calculation ──────────────────────────────
+        // Initial layout
         this.recalculateLayout()
 
-        // ─── ResizeObserver ────────────────────────────────────────
+        // ResizeObserver
         this.resizeObserver = new ResizeObserver(() => {
             this.recalculateLayout()
+            this.cacheKeyElements() // re-cache in case DOM changed
         })
         this.resizeObserver.observe(this.canvasContainer)
 
-        // ─── Start Render Loop ─────────────────────────────────────
-        this.app.ticker.add(this.renderFrame, this)
+        // Start render loop
+        this.app.ticker.add(this.boundRenderFrame)
 
-        console.log('[SynthUI] WaterfallRenderer initialized')
+        console.log('[SynthUI] WaterfallRenderer initialized (zero-alloc render loop)')
+    }
+
+    /**
+     * Cache all 88 piano key DOM elements so we never call getElementById in the hot loop.
+     */
+    private cacheKeyElements(): void {
+        for (let pitch = MIDI_MIN; pitch <= MIDI_MAX; pitch++) {
+            this.keyElements[pitch] = document.getElementById(`key-${pitch}`)
+        }
     }
 
     /**
@@ -137,183 +155,153 @@ export class WaterfallRenderer {
         const rect = this.canvasContainer.getBoundingClientRect()
         this.canvasWidth = rect.width
         this.canvasHeight = rect.height
-        this.strikeLineY = this.canvasHeight - 4 // 4px above bottom edge
+        this.strikeLineY = this.canvasHeight - 4
 
-        // Recalculate piano metrics from DOM or fallback to math
-        this.pianoMetrics =
-            calculatePianoMetricsFromDOM(this.canvasContainer.parentElement?.parentElement || this.canvasContainer) ||
+        // Recalculate piano metrics
+        const parent = this.canvasContainer.parentElement?.parentElement || this.canvasContainer
+        const metrics =
+            calculatePianoMetricsFromDOM(parent) ||
             calculatePianoMetrics(this.canvasWidth)
 
-        // Redraw strike line
+        // Flatten into typed arrays for zero-alloc render loop access
+        this.keyValid.fill(0)
+        for (let pitch = MIDI_MIN; pitch <= MIDI_MAX; pitch++) {
+            const key = metrics.keys.get(pitch)
+            if (key) {
+                this.keyX[pitch] = key.x
+                this.keyW[pitch] = key.width
+                this.keyValid[pitch] = 1
+            }
+        }
+
         this.drawStrikeLine()
     }
 
-    /**
-     * Draw the strike line at the bottom of the canvas.
-     */
     private drawStrikeLine(): void {
         if (!this.strikeLineGraphics) return
-
         this.strikeLineGraphics.clear()
 
         // Main line
         this.strikeLineGraphics.rect(0, this.strikeLineY - 1, this.canvasWidth, 2)
         this.strikeLineGraphics.fill({ color: 0xffffff, alpha: 0.15 })
 
-        // Glow effect
+        // Glow
         this.strikeLineGraphics.rect(0, this.strikeLineY - 3, this.canvasWidth, 6)
         this.strikeLineGraphics.fill({ color: 0xa855f7, alpha: 0.08 })
     }
 
-    /**
-     * Load MIDI data for rendering.
-     */
     loadNotes(midi: ParsedMidi): void {
         this.notes = midi.notes
     }
 
-    /**
-     * Set track visibility.
-     */
     setTrackVisibility(leftHand: boolean, rightHand: boolean): void {
         this.leftHandActive = leftHand
         this.rightHandActive = rightHand
     }
 
-    /**
-     * Set zoom level (pixels per second).
-     */
     setZoom(pps: number): void {
         this.pixelsPerSecond = pps
     }
 
-    /**
-     * Set the piano container element for DOM-based metrics.
-     */
-    setPianoContainer(el: HTMLElement): void {
-        this.pianoContainer = el
-    }
-
-    // ─── THE RENDER LOOP ─────────────────────────────────────────
+    // ─── THE RENDER LOOP (ZERO ALLOCATIONS) ──────────────────────
 
     /**
-     * Called every frame by PIXI.Ticker (60/120 FPS).
-     * Zero allocations — uses object pool exclusively.
+     * Called every frame by PIXI.Ticker.
+     * ALL variables are pre-allocated class fields or stack primitives.
+     * NO object literals, NO .push(), NO new anything.
      */
     private renderFrame(): void {
-        if (!this.notePool || !this.pianoMetrics || this.notes.length === 0) return
+        if (!this.notePool || this.notes.length === 0) return
 
         const time = this.playbackManager.getTime()
-        const lookahead = getLookaheadSeconds({
-            strikeLineY: this.strikeLineY,
-            pixelsPerSecond: this.pixelsPerSecond,
-            canvasHeight: this.canvasHeight,
-        })
+        const pps = this.pixelsPerSecond
+        const strikeY = this.strikeLineY
+        const canvasH = this.canvasHeight
+        const lookaheadSec = canvasH / pps
+        const notes = this.notes
 
-        // ─── Release all sprites (return to pool) ──────────────────
+        // ─── Release all sprites ───────────────────────────────────
         this.notePool.releaseAll()
 
-        // ─── Clear active notes tracking ───────────────────────────
-        // Swap current to previous for delta detection
-        const temp = this.previousActiveNotes
-        this.previousActiveNotes = this.activeNotes
-        this.activeNotes = temp
-        this.activeNotes.clear()
+        // ─── Swap active note tracking (zero-alloc) ────────────────
+        const temp = this.activeLastFrame
+        this.activeLastFrame = this.activeThisFrame
+        this.activeThisFrame = temp
+        this.activeThisFrame.fill(0)
 
-        // ─── Binary Search: Find visible note window ───────────────
-        const windowStart = time - 0.5 // Show slightly past notes
-        const windowEnd = time + lookahead
+        // ─── Binary search: find first visible note ────────────────
+        const windowStart = time - 0.5
+        const windowEnd = time + lookaheadSec
 
-        // Find first potentially visible note using binary search
         let lo = 0
-        let hi = this.notes.length
+        let hi = notes.length
         while (lo < hi) {
             const mid = (lo + hi) >>> 1
-            if (this.notes[mid].endTimeSec < windowStart) {
+            if (notes[mid].endTimeSec < windowStart) {
                 lo = mid + 1
             } else {
                 hi = mid
             }
         }
-        const startIdx = lo
 
         // ─── Render visible notes ──────────────────────────────────
-        for (let i = startIdx; i < this.notes.length; i++) {
-            const note = this.notes[i]
-
-            // Past the lookahead window — stop
+        for (let i = lo; i < notes.length; i++) {
+            const note = notes[i]
             if (note.startTimeSec > windowEnd) break
 
-            // Skip notes from muted tracks
+            // Track muting
             if (!this.rightHandActive && note.trackId === 0) continue
             if (!this.leftHandActive && note.trackId === 1) continue
 
-            // Calculate screen position
-            const noteRect = getNoteRect(note, time, {
-                strikeLineY: this.strikeLineY,
-                pixelsPerSecond: this.pixelsPerSecond,
-                canvasHeight: this.canvasHeight,
-            })
+            // Skip if pitch has no valid key mapping
+            if (!this.keyValid[note.pitch]) continue
 
-            // Skip if completely off-screen
-            if (noteRect.y + noteRect.height < 0 || noteRect.y > this.canvasHeight) continue
+            // ─── Inline Y/Height math (no function call, no object alloc) ─
+            const timeUntilStart = note.startTimeSec - time
+            const noteBottomY = strikeY - (timeUntilStart * pps)
+            const noteHeight = note.durationSec * pps
+            const noteTopY = noteBottomY - noteHeight
 
-            // Get X position from piano metrics
-            const xInfo = getNoteX(note.pitch, this.pianoMetrics)
-            if (!xInfo) continue
+            // Visibility check (all stack primitives)
+            if ((noteTopY + noteHeight) < 0 || noteTopY > canvasH) continue
 
-            // ─── Acquire sprite from pool ────────────────────────────
+            // ─── Acquire sprite ──────────────────────────────────────
             const sprite = this.notePool.acquire()
-            if (!sprite) break // Pool exhausted
+            if (!sprite) break
 
-            // ─── Position the sprite ─────────────────────────────────
-            sprite.x = xInfo.x
-            sprite.y = noteRect.y
-            sprite.width = xInfo.width
-            sprite.height = Math.max(noteRect.height, 3) // Minimum 3px for very short notes
+            // ─── Position (all primitive assignments) ────────────────
+            sprite.x = this.keyX[note.pitch]
+            sprite.y = noteTopY
+            sprite.width = this.keyW[note.pitch]
+            sprite.height = Math.max(noteHeight, 3)
 
-            // ─── Color by track ──────────────────────────────────────
-            const trackColor = TRACK_COLORS[note.trackId] ?? 0xa855f7
+            // ─── Color & active state ────────────────────────────────
+            const color = TRACK_COLORS[note.trackId] ?? DEFAULT_COLOR
+            const active = time >= note.startTimeSec && time <= note.endTimeSec
 
-            // ─── Strike Line Collision ───────────────────────────────
-            const active = isNoteActive(note, time)
             if (active) {
-                this.activeNotes.add(note.pitch)
-                sprite.tint = trackColor
-                sprite.alpha = ACTIVE_GLOW_ALPHA
-                // Glow effect via slight expansion
+                this.activeThisFrame[note.pitch] = 1
+                sprite.tint = color
+                sprite.alpha = ACTIVE_ALPHA
+                // Slight glow expansion
                 sprite.x -= 1
                 sprite.width += 2
             } else {
-                sprite.tint = trackColor
+                sprite.tint = color
                 sprite.alpha = INACTIVE_ALPHA
             }
-
-            // Remove any residual filters for performance
-            sprite.filters = null
         }
 
-        // ─── Key Bridge: DOM Manipulation for Piano Key Activation ─
-        this.updateKeyBridge()
-    }
+        // ─── Key Bridge: cached DOM refs, no getElementById ────────
+        for (let pitch = MIDI_MIN; pitch <= MIDI_MAX; pitch++) {
+            const wasActive = this.activeLastFrame[pitch]
+            const isActive = this.activeThisFrame[pitch]
 
-    /**
-     * Zero-latency key bridge: directly manipulate DOM data attributes
-     * on the React piano keys. Bypasses React state entirely.
-     */
-    private updateKeyBridge(): void {
-        // Deactivate keys that are no longer playing
-        for (const pitch of this.previousActiveNotes) {
-            if (!this.activeNotes.has(pitch)) {
-                const el = document.getElementById(`key-${pitch}`)
+            if (wasActive && !isActive) {
+                const el = this.keyElements[pitch]
                 if (el) el.dataset.active = 'false'
-            }
-        }
-
-        // Activate keys that just started playing
-        for (const pitch of this.activeNotes) {
-            if (!this.previousActiveNotes.has(pitch)) {
-                const el = document.getElementById(`key-${pitch}`)
+            } else if (!wasActive && isActive) {
+                const el = this.keyElements[pitch]
                 if (el) el.dataset.active = 'true'
             }
         }
@@ -322,44 +310,37 @@ export class WaterfallRenderer {
     // ─── Cleanup ─────────────────────────────────────────────────
 
     destroy(): void {
-        // Stop render loop
         if (this.app) {
-            this.app.ticker.remove(this.renderFrame, this)
+            this.app.ticker.remove(this.boundRenderFrame)
         }
 
-        // Remove resize observer
         if (this.resizeObserver) {
             this.resizeObserver.disconnect()
             this.resizeObserver = null
         }
 
         // Deactivate all piano keys
-        for (const pitch of this.activeNotes) {
-            const el = document.getElementById(`key-${pitch}`)
+        for (let pitch = MIDI_MIN; pitch <= MIDI_MAX; pitch++) {
+            const el = this.keyElements[pitch]
             if (el) el.dataset.active = 'false'
         }
-        this.activeNotes.clear()
-        this.previousActiveNotes.clear()
 
-        // Destroy pool
         if (this.notePool) {
             this.notePool.destroy()
             this.notePool = null
         }
 
-        // Destroy app (React Strict Mode safe)
         if (this.app) {
             const canvas = this.app.canvas
             this.app.destroy(true, { children: true, texture: true })
-            // Remove canvas from DOM
-            if (canvas && canvas.parentElement) {
+            if (canvas?.parentElement) {
                 canvas.parentElement.removeChild(canvas)
             }
             this.app = null
         }
 
         this.strikeLineGraphics = null
-        this.glowFilter = null
+        this.keyElements.fill(null)
 
         console.log('[SynthUI] WaterfallRenderer destroyed')
     }

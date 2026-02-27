@@ -4,7 +4,7 @@
  * DESIGN RULES:
  * 1. AudioContext only created on user interaction (autoplay policy)
  * 2. Supports track muting (left/right hand)
- * 3. Scheduled note playback synced to PlaybackManager clock
+ * 3. Uses a GainNode for instant mute/unmute on stop
  */
 
 import type { NoteEvent } from '../types'
@@ -21,6 +21,7 @@ interface SmplrSoundfont {
     loaded: () => Promise<unknown>
     output: { setVolume: (vol: number) => void }
     load: Promise<unknown>
+    disconnect: () => void
 }
 
 export class AudioSynth {
@@ -28,10 +29,16 @@ export class AudioSynth {
     private audioContext: AudioContext
     private _loaded = false
     private _loading = false
-    private _volume = 100 // 0-127
+    private _volume = 100
+
+    // Master gain node for instant stop
+    private masterGain: GainNode
 
     constructor(audioContext: AudioContext) {
         this.audioContext = audioContext
+        // Create a master gain node between smplr output and destination
+        this.masterGain = audioContext.createGain()
+        this.masterGain.connect(audioContext.destination)
     }
 
     get loaded(): boolean {
@@ -39,7 +46,7 @@ export class AudioSynth {
     }
 
     /**
-     * Load the piano soundfont. Must be called after AudioContext is resumed.
+     * Load the piano soundfont.
      */
     async load(): Promise<void> {
         if (this._loaded || this._loading) return
@@ -47,20 +54,16 @@ export class AudioSynth {
 
         try {
             console.log('[SynthUI Audio] Loading piano soundfont...')
-
-            // Dynamic import to avoid SSR "window is undefined" crash
             const { Soundfont: SoundfontClass } = await import('smplr')
 
             this.soundfont = new SoundfontClass(this.audioContext, {
                 instrument: 'acoustic_grand_piano',
+                destination: this.masterGain, // Route through our gain node
             }) as unknown as SmplrSoundfont
 
-            // Wait for samples to load — loaded() is a METHOD, not a property
             await this.soundfont.loaded()
-
             this._loaded = true
-            console.log('[SynthUI Audio] ✅ Piano soundfont loaded successfully')
-            console.log('[SynthUI Audio] AudioContext state:', this.audioContext.state)
+            console.log('[SynthUI Audio] ✅ Piano soundfont loaded')
         } catch (err) {
             console.error('[SynthUI Audio] ❌ Failed to load soundfont:', err)
             this._loading = false
@@ -69,25 +72,18 @@ export class AudioSynth {
     }
 
     /**
-     * Play a single note immediately (for testing audio).
+     * Play a single test note.
      */
     playTestNote(pitch: number = 60): void {
-        if (!this.soundfont || !this._loaded) {
-            console.warn('[SynthUI Audio] Cannot play test note: soundfont not loaded')
-            return
-        }
-        console.log('[SynthUI Audio] Playing test note:', pitch)
+        if (!this.soundfont || !this._loaded) return
+        // Unmute in case it was muted
+        this.masterGain.gain.cancelScheduledValues(this.audioContext.currentTime)
+        this.masterGain.gain.setValueAtTime(this._volume / 127, this.audioContext.currentTime)
         this.soundfont.start({ note: pitch, velocity: 100, duration: 0.5 })
     }
 
     /**
-     * Schedule a batch of notes for playback relative to the AudioContext clock.
-     *
-     * @param notes - Notes to schedule
-     * @param songStartCtxTime - AudioContext.currentTime when this scheduling call happens
-     * @param songOffset - Current song position (seconds into the song)
-     * @param playbackRate - Current playback rate multiplier
-     * @param mutedTracks - Set of track IDs to mute
+     * Schedule notes for playback.
      */
     scheduleNotes(
         notes: NoteEvent[],
@@ -96,28 +92,23 @@ export class AudioSynth {
         playbackRate: number,
         mutedTracks: Set<number>
     ): number {
-        if (!this.soundfont || !this._loaded) {
-            console.warn('[SynthUI Audio] scheduleNotes called but soundfont not loaded')
-            return 0
-        }
+        if (!this.soundfont || !this._loaded) return 0
+
+        // Ensure gain is at normal level when scheduling
+        this.masterGain.gain.cancelScheduledValues(this.audioContext.currentTime)
+        this.masterGain.gain.setValueAtTime(this._volume / 127, this.audioContext.currentTime)
 
         const ctx = this.audioContext
         let scheduled = 0
 
         for (const note of notes) {
-            // Skip muted tracks
             if (mutedTracks.has(note.trackId)) continue
-
-            // Skip notes that have already ended
             if (note.endTimeSec <= songOffset) continue
 
-            // Calculate when this note should play on the AudioContext timeline
             const noteStartInSong = note.startTimeSec - songOffset
-            if (noteStartInSong < -0.1) continue // Already in the past
+            if (noteStartInSong < -0.1) continue
 
             const ctxTime = songStartCtxTime + (noteStartInSong / playbackRate)
-
-            // Only schedule notes within a 4-second window ahead
             if (ctxTime > ctx.currentTime + 4) continue
 
             const duration = note.durationSec / playbackRate
@@ -125,13 +116,13 @@ export class AudioSynth {
             try {
                 this.soundfont.start({
                     note: note.pitch,
-                    velocity: note.velocity, // 0-127, passed directly
-                    time: Math.max(ctxTime, ctx.currentTime), // Never schedule in the past
-                    duration: Math.max(duration, 0.05), // minimum 50ms
+                    velocity: note.velocity,
+                    time: Math.max(ctxTime, ctx.currentTime),
+                    duration: Math.max(duration, 0.05),
                 })
                 scheduled++
             } catch {
-                // Silently ignore scheduling errors
+                // Ignore
             }
         }
 
@@ -139,33 +130,42 @@ export class AudioSynth {
     }
 
     /**
-     * Stop all currently playing notes.
+     * INSTANT STOP: Kill all audio immediately using the master GainNode.
+     * This is much more reliable than smplr's .stop() because it kills
+     * both currently-playing AND future-scheduled notes.
      */
     stopAll(): void {
-        if (!this.soundfont) return
-        try {
-            this.soundfont.stop()
-        } catch {
-            // Ignore
+        // Instantly ramp gain to 0 (kills all audio in ~20ms)
+        const now = this.audioContext.currentTime
+        this.masterGain.gain.cancelScheduledValues(now)
+        this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, now)
+        this.masterGain.gain.linearRampToValueAtTime(0, now + 0.02)
+
+        // Also tell smplr to stop
+        if (this.soundfont) {
+            try {
+                this.soundfont.stop()
+            } catch {
+                // Ignore
+            }
         }
     }
 
-    /**
-     * Set master volume (0-127).
-     */
     setVolume(v: number): void {
         this._volume = Math.max(0, Math.min(127, v))
-        if (!this.soundfont) return
-        try {
-            this.soundfont.output.setVolume(this._volume)
-        } catch {
-            // Ignore if not ready
-        }
+        // Update gain node directly
+        const now = this.audioContext.currentTime
+        this.masterGain.gain.cancelScheduledValues(now)
+        this.masterGain.gain.setValueAtTime(this._volume / 127, now)
     }
 
     destroy(): void {
         this.stopAll()
+        if (this.soundfont) {
+            try { this.soundfont.disconnect() } catch { /* ignore */ }
+        }
         this.soundfont = null
+        this.masterGain.disconnect()
         this._loaded = false
         this._loading = false
     }
