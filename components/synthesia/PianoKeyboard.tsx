@@ -1,0 +1,168 @@
+'use client'
+
+import * as React from 'react'
+import { cn } from '@/lib/utils'
+
+// An 88-key piano spans MIDI notes 21 (A0) to 108 (C8)
+// 52 white keys, 36 black keys
+// Pattern repeats: C C# D D# E F F# G G# A A# B
+
+// Generate the keyboard layout mathematically
+const generateKeyboard = () => {
+  const keys: Array<{
+    noteNumber: number
+    isBlack: boolean
+    noteName: string
+    whiteKeyIndex: number // For positioning black keys
+  }> = []
+
+  const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+  const blackNotes = [1, 3, 6, 8, 10] // C#, D#, F#, G#, A#
+
+  let whiteKeyIndex = 0
+
+  for (let midiNote = 21; midiNote <= 108; midiNote++) {
+    const noteInOctave = midiNote % 12
+    const octave = Math.floor(midiNote / 12) - 1
+    const isBlack = blackNotes.includes(noteInOctave)
+    const noteName = noteNames[noteInOctave] + octave
+
+    keys.push({
+      noteNumber: midiNote,
+      isBlack,
+      noteName,
+      whiteKeyIndex: isBlack ? whiteKeyIndex - 1 : whiteKeyIndex,
+    })
+
+    if (!isBlack) {
+      whiteKeyIndex++
+    }
+  }
+
+  return keys
+}
+
+const KEYBOARD_LAYOUT = generateKeyboard()
+const WHITE_KEYS = KEYBOARD_LAYOUT.filter(k => !k.isBlack)
+const BLACK_KEYS = KEYBOARD_LAYOUT.filter(k => k.isBlack)
+
+// Calculate black key position based on which white key it follows
+// Black keys sit on the seam between white keys, offset to the right
+const getBlackKeyPosition = (whiteKeyIndex: number, noteInOctave: number): number => {
+  // Each white key is 100%/52 wide
+  const whiteKeyWidth = 100 / 52
+  
+  // Base position: right edge of the white key before the black key
+  const basePosition = (whiteKeyIndex + 1) * whiteKeyWidth
+  
+  // Black key width is 60% of white key width
+  const blackKeyWidth = whiteKeyWidth * 0.6
+  
+  // Center the black key on the seam, with slight adjustments for visual accuracy
+  // Different black keys have slightly different offsets in a real piano
+  let offset = 0
+  switch (noteInOctave) {
+    case 1: // C#
+      offset = -0.15
+      break
+    case 3: // D#
+      offset = 0.15
+      break
+    case 6: // F#
+      offset = -0.1
+      break
+    case 8: // G#
+      offset = 0
+      break
+    case 10: // A#
+      offset = 0.1
+      break
+  }
+  
+  return basePosition - (blackKeyWidth / 2) + (offset * whiteKeyWidth)
+}
+
+export const PianoKeyboard = React.forwardRef<HTMLDivElement>((_, ref) => {
+  return (
+    <div
+      ref={ref}
+      className="relative w-full h-32 md:h-36 lg:h-40 select-none"
+      role="application"
+      aria-label="88-key Piano Keyboard"
+    >
+      {/* White Keys - 52 total */}
+      <div className="flex flex-row w-full h-full">
+        {WHITE_KEYS.map((key) => (
+          <div
+            key={key.noteNumber}
+            id={`key-${key.noteNumber}`}
+            data-note={key.noteName}
+            data-active="false"
+            className={cn(
+              'flex-1 h-full',
+              'bg-white',
+              'border-r border-zinc-300 last:border-r-0',
+              'rounded-b-md',
+              'shadow-sm',
+              'transition-colors duration-75',
+              // Zero-latency visual hooks (Step 7)
+              // External engine can toggle data-active via DOM manipulation
+              'data-[active=true]:bg-purple-500',
+              'data-[active=true]:shadow-lg',
+              'data-[active=true]:shadow-purple-500/50',
+              // Hover state for testing
+              'hover:bg-zinc-100',
+              'active:bg-purple-400',
+              'cursor-pointer'
+            )}
+            role="button"
+            aria-label={`Piano key ${key.noteName}`}
+          />
+        ))}
+      </div>
+
+      {/* Black Keys - 36 total, absolutely positioned */}
+      {BLACK_KEYS.map((key) => {
+        const noteInOctave = key.noteNumber % 12
+        const leftPercent = getBlackKeyPosition(key.whiteKeyIndex, noteInOctave)
+        const blackKeyWidth = (100 / 52) * 0.6
+
+        return (
+          <div
+            key={key.noteNumber}
+            id={`key-${key.noteNumber}`}
+            data-note={key.noteName}
+            data-active="false"
+            className={cn(
+              'absolute top-0',
+              'h-[65%]',
+              'bg-zinc-900',
+              'rounded-b-md',
+              'shadow-md',
+              'z-10',
+              'transition-colors duration-75',
+              // Zero-latency visual hooks (Step 7)
+              'data-[active=true]:bg-purple-600',
+              'data-[active=true]:shadow-lg',
+              'data-[active=true]:shadow-purple-600/50',
+              // Hover state for testing
+              'hover:bg-zinc-800',
+              'active:bg-purple-500',
+              'cursor-pointer'
+            )}
+            style={{
+              left: `${leftPercent}%`,
+              width: `${blackKeyWidth}%`,
+            }}
+            role="button"
+            aria-label={`Piano key ${key.noteName}`}
+          />
+        )
+      })}
+    </div>
+  )
+})
+
+PianoKeyboard.displayName = 'PianoKeyboard'
+
+export default PianoKeyboard
