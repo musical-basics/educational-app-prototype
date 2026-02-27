@@ -1,7 +1,7 @@
 {
     "output": {
-        "filePath": "repomix-output.txt",
-        "style": "markdown"
+        "filePath": "repomix-output.xml",
+        "style": "xml"
     },
     "ignore": {
         "useGitignore": true,
@@ -17,7 +17,8 @@
             "*.jpg",
             "*.svg",
             "repomix-output.*",
-            "repomix.config.json"
+            "repomix.config.json",
+            "*.xml"
         ]
     }
 }
