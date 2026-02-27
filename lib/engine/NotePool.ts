@@ -7,11 +7,11 @@
  * 3. acquire() / release() to manage active/inactive sprites
  */
 
-import { Container, Graphics, NineSliceSprite, RenderTexture } from 'pixi.js'
+import { Container, Graphics, RenderTexture, Sprite } from 'pixi.js'
 import type { Application } from 'pixi.js'
 
 export class NotePool {
-    private pool: NineSliceSprite[] = []
+    private pool: Sprite[] = []
     private activeCount = 0
     private container: Container
     private noteTexture: RenderTexture | null = null
@@ -36,13 +36,7 @@ export class NotePool {
 
         // ─── Pre-allocate Sprites ────────────────────────────────────
         for (let i = 0; i < this.poolSize; i++) {
-            const sprite = new NineSliceSprite({
-                texture: this.noteTexture!,
-                leftWidth: 6,
-                rightWidth: 6,
-                topHeight: 6,
-                bottomHeight: 6
-            })
+            const sprite = new Sprite(this.noteTexture)
             sprite.visible = false
             sprite.label = `note-${i}`
             this.container.addChild(sprite)
@@ -92,7 +86,7 @@ export class NotePool {
      * Acquire a sprite from the pool. Returns null if pool is exhausted.
      * ZERO ALLOCATION — just makes an existing sprite visible.
      */
-    acquire(): NineSliceSprite | null {
+    acquire(): Sprite | null {
         if (this.activeCount >= this.poolSize) return null
 
         const sprite = this.pool[this.activeCount]

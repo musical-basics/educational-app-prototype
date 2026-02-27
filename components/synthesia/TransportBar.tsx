@@ -29,7 +29,7 @@ const formatTime = (seconds: number): string => {
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
-export const TransportBar: React.FC<TransportBarProps> = ({
+const TransportBarBase: React.FC<TransportBarProps> = ({
   isPlaying,
   currentTime,
   duration,
@@ -211,4 +211,6 @@ export const TransportBar: React.FC<TransportBarProps> = ({
   )
 }
 
-export default TransportBar
+const MemoizedTransportBar = React.memo(TransportBarBase)
+export { MemoizedTransportBar as TransportBar }
+export default MemoizedTransportBar

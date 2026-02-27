@@ -75,6 +75,10 @@ export class WaterfallRenderer {
     // Bound render function (avoid re-binding per frame)
     private boundRenderFrame: () => void
 
+    // FPS diagnostic
+    private frameCount = 0
+    private lastFpsTime = 0
+
     constructor(
         canvasContainer: HTMLElement,
         playbackManager: PlaybackManager
@@ -93,7 +97,7 @@ export class WaterfallRenderer {
         await this.app.init({
             preference: 'webgl',
             powerPreference: 'high-performance',
-            antialias: true,
+            antialias: false, // Notes are rectangles — AA wastes GPU at Retina resolution
             resolution: window.devicePixelRatio || 1,
             autoDensity: true,
             backgroundAlpha: 0,
@@ -289,9 +293,9 @@ export class WaterfallRenderer {
 
             // NineSlice optimization: only assign dimensions if changed to prevent vertex rebuilding
             const w = Math.round(this.keyW[note.pitch])
-            const h = Math.max(noteHeight, 12)
-            if (sprite.width !== w) sprite.width = w
-            if (sprite.height !== h) sprite.height = h
+            const h = Math.max(Math.round(noteHeight), 12)
+            if (Math.round(sprite.width) !== w) sprite.width = w
+            if (Math.round(sprite.height) !== h) sprite.height = h
 
             // ─── Color & active state ────────────────────────────────
             const color = TRACK_COLORS[note.trackId] ?? DEFAULT_COLOR
@@ -322,6 +326,16 @@ export class WaterfallRenderer {
                 const el = this.keyElements[pitch]
                 if (el) el.dataset.active = 'true'
             }
+        }
+
+        // ─── FPS Diagnostic ────────────────────────────────────────
+        this.frameCount++
+        const now = performance.now()
+        if (now - this.lastFpsTime >= 2000) {
+            const fps = (this.frameCount / ((now - this.lastFpsTime) / 1000)).toFixed(1)
+            console.log(`[FPS] ${fps}fps`)
+            this.frameCount = 0
+            this.lastFpsTime = now
         }
     }
 
