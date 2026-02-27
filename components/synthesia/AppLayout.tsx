@@ -4,133 +4,178 @@ import * as React from 'react'
 import { Toolbar } from './Toolbar'
 import { PianoKeyboard } from './PianoKeyboard'
 import { TransportBar } from './TransportBar'
-import type { AppState } from '@/lib/types'
+import { useSynthStore } from '@/lib/store'
+import { parseMidiFile } from '@/lib/midi/parser'
 
 interface AppLayoutProps {
-  // Ref to expose the PixiJS canvas container
   canvasContainerRef?: React.RefObject<HTMLDivElement | null>
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
-  // Dummy State (Step 14) - Makes UI interactive in preview
-  // Can be replaced with Zustand store later
-  const [state, setState] = React.useState<AppState>({
-    isPlaying: false,
-    currentTime: 0,
-    duration: 225, // 3:45 in seconds
-    tempo: 100,
-    leftHandActive: true,
-    rightHandActive: true,
-    songTitle: 'Chopin - Nocturne Op. 9 No. 2',
-  })
+  // ─── Zustand Store ──────────────────────────────────────────────
+  const isPlaying = useSynthStore((s) => s.isPlaying)
+  const tempo = useSynthStore((s) => s.tempo)
+  const leftHandActive = useSynthStore((s) => s.leftHandActive)
+  const rightHandActive = useSynthStore((s) => s.rightHandActive)
+  const songTitle = useSynthStore((s) => s.songTitle)
+  const duration = useSynthStore((s) => s.duration)
 
-  // Simulate playback progress
+  const setPlaying = useSynthStore((s) => s.setPlaying)
+  const setTempo = useSynthStore((s) => s.setTempo)
+  const toggleLeftHand = useSynthStore((s) => s.toggleLeftHand)
+  const toggleRightHand = useSynthStore((s) => s.toggleRightHand)
+  const loadMidi = useSynthStore((s) => s.loadMidi)
+
+  // ─── Display Time (ref-based, NOT React state) ──────────────────
+  // This will be updated by PlaybackManager via rAF loop in Phase 4.
+  // For now, we use a local ref + rAF to update the transport bar display.
+  const displayTimeRef = React.useRef(0)
+  const [displayTime, setDisplayTime] = React.useState(0)
+
+  // Simulate playback time for transport bar display
+  // Will be replaced by PlaybackManager in Phase 4
   React.useEffect(() => {
-    if (!state.isPlaying) return
+    if (!isPlaying) return
 
-    const interval = setInterval(() => {
-      setState((prev) => ({
-        ...prev,
-        currentTime: prev.currentTime >= prev.duration ? 0 : prev.currentTime + 0.1,
-      }))
-    }, 100)
+    let lastTimestamp: number | null = null
+    let rafId: number
 
-    return () => clearInterval(interval)
-  }, [state.isPlaying, state.duration])
+    const tick = (timestamp: number) => {
+      if (lastTimestamp !== null) {
+        const deltaSec = ((timestamp - lastTimestamp) / 1000) * (tempo / 100)
+        displayTimeRef.current = Math.min(
+          displayTimeRef.current + deltaSec,
+          duration
+        )
+        // Update display at ~15fps to avoid excessive React re-renders
+        setDisplayTime(displayTimeRef.current)
+      }
+      lastTimestamp = timestamp
+      rafId = requestAnimationFrame(tick)
+    }
 
-  // Handlers
+    rafId = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafId)
+  }, [isPlaying, tempo, duration])
+
+  // ─── Hidden File Input for MIDI loading ─────────────────────────
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  const handleLoadMidi = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      const buffer = await file.arrayBuffer()
+      const parsed = parseMidiFile(buffer, file.name)
+      loadMidi(parsed)
+      displayTimeRef.current = 0
+      setDisplayTime(0)
+      console.log('[SynthUI] MIDI loaded:', parsed.name, `${parsed.notes.length} notes, ${parsed.durationSec.toFixed(1)}s`)
+      console.log('[SynthUI] Tracks:', parsed.trackCount, '| Tempo changes:', parsed.tempoChanges.length)
+      console.log('[SynthUI] First 5 notes:', parsed.notes.slice(0, 5))
+    } catch (err) {
+      console.error('[SynthUI] Failed to parse MIDI file:', err)
+    }
+
+    // Reset input so re-selecting the same file triggers onChange
+    e.target.value = ''
+  }
+
+  // ─── Handlers ──────────────────────────────────────────────────
   const handlePlayPause = () => {
-    setState((prev) => ({ ...prev, isPlaying: !prev.isPlaying }))
+    setPlaying(!isPlaying)
   }
 
   const handleStop = () => {
-    setState((prev) => ({ ...prev, isPlaying: false, currentTime: 0 }))
+    setPlaying(false)
+    displayTimeRef.current = 0
+    setDisplayTime(0)
   }
 
   const handleStepBackward = () => {
-    setState((prev) => ({ ...prev, currentTime: Math.max(0, prev.currentTime - 5) }))
+    displayTimeRef.current = Math.max(0, displayTimeRef.current - 5)
+    setDisplayTime(displayTimeRef.current)
   }
 
   const handleTimeChange = (time: number) => {
-    setState((prev) => ({ ...prev, currentTime: time }))
+    displayTimeRef.current = time
+    setDisplayTime(time)
   }
 
-  const handleTempoChange = (tempo: number) => {
-    setState((prev) => ({ ...prev, tempo }))
-  }
-
-  const handleLeftHandToggle = () => {
-    setState((prev) => ({ ...prev, leftHandActive: !prev.leftHandActive }))
-  }
-
-  const handleRightHandToggle = () => {
-    setState((prev) => ({ ...prev, rightHandActive: !prev.rightHandActive }))
-  }
-
-  const handleLoadMidi = () => {
-    // Placeholder - would open file dialog
-    console.log('[v0] Load MIDI clicked')
+  const handleTempoChange = (newTempo: number) => {
+    setTempo(newTempo)
   }
 
   const handleOpenSettings = () => {
-    // Placeholder - would open settings modal
-    console.log('[v0] Settings clicked')
+    console.log('[SynthUI] Settings clicked')
   }
 
-  // Internal ref if none provided
+  // ─── Canvas Container Ref ──────────────────────────────────────
   const internalCanvasRef = React.useRef<HTMLDivElement>(null)
   const containerRef = canvasContainerRef || internalCanvasRef
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-zinc-950 text-slate-200 flex flex-col">
-      {/* Top Toolbar - Absolute positioned overlay (Step 3) */}
+      {/* Hidden file input for MIDI loading */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".mid,.midi"
+        className="hidden"
+        onChange={handleFileSelect}
+      />
+
+      {/* Top Toolbar */}
       <Toolbar
-        songTitle={state.songTitle}
+        songTitle={songTitle}
         onLoadMidi={handleLoadMidi}
         onOpenSettings={handleOpenSettings}
       />
 
-      {/* The Graphics Shell - Canvas Mount Point (Step 2) */}
+      {/* The Graphics Shell - Canvas Mount Point */}
       <div className="flex-1 relative" style={{ height: '65vh' }}>
         <div
           id="pixi-canvas-container"
           ref={containerRef}
           className="relative w-full h-full z-0 bg-black/50"
         >
-          {/* PRIMARY AI: INJECT PIXIJS CANVAS HERE */}
-          
-          {/* Placeholder visual - can be removed when engine is mounted */}
+          {/* Placeholder visual - removed when PixiJS engine mounts in Phase 5 */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center space-y-4 opacity-30">
               <div className="w-16 h-16 mx-auto rounded-full border-2 border-dashed border-zinc-600 flex items-center justify-center">
                 <div className="w-3 h-3 rounded-full bg-purple-500 animate-pulse" />
               </div>
               <p className="text-zinc-600 text-sm font-medium">
-                PixiJS Canvas Mount Point
+                {songTitle ? 'Engine ready — Play to begin' : 'Load a MIDI file to begin'}
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Piano Keyboard (Step 4-7) */}
+      {/* Piano Keyboard */}
       <PianoKeyboard ref={containerRef} />
 
-      {/* Transport Bar Controls (Step 8-13) */}
+      {/* Transport Bar Controls */}
       <TransportBar
-        isPlaying={state.isPlaying}
-        currentTime={state.currentTime}
-        duration={state.duration}
-        tempo={state.tempo}
-        leftHandActive={state.leftHandActive}
-        rightHandActive={state.rightHandActive}
+        isPlaying={isPlaying}
+        currentTime={displayTime}
+        duration={duration}
+        tempo={tempo}
+        leftHandActive={leftHandActive}
+        rightHandActive={rightHandActive}
         onPlayPause={handlePlayPause}
         onStop={handleStop}
         onStepBackward={handleStepBackward}
         onTimeChange={handleTimeChange}
         onTempoChange={handleTempoChange}
-        onLeftHandToggle={handleLeftHandToggle}
-        onRightHandToggle={handleRightHandToggle}
+        onLeftHandToggle={toggleLeftHand}
+        onRightHandToggle={toggleRightHand}
       />
     </div>
   )

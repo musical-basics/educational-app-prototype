@@ -1,6 +1,40 @@
-// TypeScript Prop Interface (Step 14)
-// Defines the AppState interface for UI components
-// This allows easy integration with a Zustand store later
+// TypeScript interfaces for SynthUI
+// Core application types
+
+// ─── MIDI Data Types ───────────────────────────────────────────────
+
+/** A single normalized MIDI note event with absolute timing */
+export interface NoteEvent {
+  id: string
+  /** MIDI pitch: 21 (A0) to 108 (C8) */
+  pitch: number
+  /** Absolute start time in seconds */
+  startTimeSec: number
+  /** Absolute end time in seconds */
+  endTimeSec: number
+  /** Duration in seconds */
+  durationSec: number
+  /** Note velocity (0-127) */
+  velocity: number
+  /** Track index from MIDI file */
+  trackId: number
+}
+
+/** Parsed MIDI file data */
+export interface ParsedMidi {
+  /** Song/file name */
+  name: string
+  /** Total duration in seconds */
+  durationSec: number
+  /** Flattened, sorted (by startTimeSec) note events */
+  notes: NoteEvent[]
+  /** Number of tracks */
+  trackCount: number
+  /** Tempo map entries */
+  tempoChanges: { time: number; bpm: number }[]
+}
+
+// ─── UI Component Props ────────────────────────────────────────────
 
 export interface AppState {
   isPlaying: boolean
