@@ -1,0 +1,23 @@
+{
+    "output": {
+        "filePath": "repomix-output.txt",
+        "style": "markdown"
+    },
+    "ignore": {
+        "useGitignore": true,
+        "useDefaultPatterns": true,
+        "customPatterns": [
+            "node_modules",
+            ".next",
+            "pnpm-lock.yaml",
+            "components/ui/**",
+            "public/**",
+            ".DS_Store",
+            "*.png",
+            "*.jpg",
+            "*.svg",
+            "repomix-output.*",
+            "repomix.config.json"
+        ]
+    }
+}
