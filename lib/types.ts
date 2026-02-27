@@ -57,6 +57,7 @@ export interface TransportBarProps {
   currentTime: number
   duration: number
   tempo: number
+  volume: number
   leftHandActive: boolean
   rightHandActive: boolean
   onPlayPause: () => void
@@ -64,6 +65,7 @@ export interface TransportBarProps {
   onStepBackward: () => void
   onTimeChange: (time: number) => void
   onTempoChange: (tempo: number) => void
+  onVolumeChange: (volume: number) => void
   onLeftHandToggle: () => void
   onRightHandToggle: () => void
 }

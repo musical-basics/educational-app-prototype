@@ -30,14 +30,18 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
   const toggleRightHand = useSynthStore((s) => s.toggleRightHand)
   const loadMidi = useSynthStore((s) => s.loadMidi)
 
+  // ─── Local state ────────────────────────────────────────────────
+  const [volume, setVolume] = React.useState(100)
+
   // ─── Refs (never trigger re-renders) ────────────────────────────
   const audioSynthRef = React.useRef<AudioSynth | null>(null)
   const rendererRef = React.useRef<WaterfallRenderer | null>(null)
   const rendererInitialized = React.useRef(false)
   const schedulerTimerRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
   const displayRafRef = React.useRef<number>(0)
+  const lastDisplayUpdateRef = React.useRef<number>(0)
 
-  // Display time state — updated via rAF at ~15fps for transport bar
+  // Display time state — updated at ~5fps to minimize React re-renders
   const [displayTime, setDisplayTime] = React.useState(0)
   const [rendererReady, setRendererReady] = React.useState(false)
 
@@ -55,7 +59,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
       if (!container) return
 
       try {
-        // Dynamic import to avoid "window is undefined" SSR crash
         const { WaterfallRenderer: WR } = await import('@/lib/engine/WaterfallRenderer')
         const pm = getPlaybackManager()
         const renderer = new WR(container, pm)
@@ -71,7 +74,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
     initRenderer()
 
     return () => {
-      // Cleanup on unmount (React Strict Mode safe)
       if (rendererRef.current) {
         rendererRef.current.destroy()
         rendererRef.current = null
@@ -105,14 +107,18 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
   }, [parsedMidi, rendererReady])
 
   // ─── Display Time Update Loop ───────────────────────────────────
+  // Update React state for transport bar at ~5fps to minimize jitter.
+  // The PixiJS renderer polls PlaybackManager directly at 60fps independently.
   React.useEffect(() => {
-    let frameCount = 0
-    const tick = () => {
-      frameCount++
-      if (frameCount % 2 === 0) {
+    const tick = (timestamp: number) => {
+      // Only update React state every 200ms (~5fps) to minimize re-renders
+      if (timestamp - lastDisplayUpdateRef.current > 200) {
+        lastDisplayUpdateRef.current = timestamp
         const pm = getPlaybackManager()
-        setDisplayTime(pm.getTime())
+        const currentT = pm.getTime()
+        setDisplayTime(currentT)
 
+        // Sync isPlaying if PlaybackManager stopped (end of song)
         if (!pm.isPlaying && isPlaying) {
           setPlaying(false)
         }
@@ -146,17 +152,22 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
       if (!leftHandActive && parsedMidi.trackCount > 1) mutedTracks.add(1)
 
       const ctx = pm.getAudioContext()
-      synth.scheduleNotes(
+      const count = synth.scheduleNotes(
         parsedMidi.notes,
         ctx.currentTime,
         pm.getTime(),
         tempo / 100,
         mutedTracks
       )
+
+      if (count > 0) {
+        console.log(`[SynthUI Audio] Scheduled ${count} notes`)
+      }
     }
 
+    // Schedule immediately and then every 1.5 seconds
     scheduleChunk()
-    schedulerTimerRef.current = setInterval(scheduleChunk, 2000)
+    schedulerTimerRef.current = setInterval(scheduleChunk, 1500)
 
     return () => {
       if (schedulerTimerRef.current) {
@@ -192,10 +203,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
 
       // Initialize audio on first user interaction (autoplay policy)
       if (!audioSynthRef.current) {
+        console.log('[SynthUI Audio] Initializing audio on user interaction...')
         await pm.ensureResumed()
+        console.log('[SynthUI Audio] AudioContext resumed, state:', pm.getAudioContext().state)
         const synth = new AudioSynth(pm.getAudioContext())
         await synth.load()
+        synth.setVolume(volume)
         audioSynthRef.current = synth
+
+        // Play a test note to confirm audio works
+        synth.playTestNote(60)
       }
 
       console.log('[SynthUI] MIDI loaded:', parsed.name, `${parsed.notes.length} notes, ${parsed.durationSec.toFixed(1)}s`)
@@ -216,9 +233,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
       setPlaying(false)
     } else {
       if (!audioSynthRef.current) {
+        console.log('[SynthUI Audio] Initializing audio on Play...')
         await pm.ensureResumed()
         const synth = new AudioSynth(pm.getAudioContext())
         await synth.load()
+        synth.setVolume(volume)
         audioSynthRef.current = synth
       }
 
@@ -254,6 +273,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
     setTempo(newTempo)
     const pm = getPlaybackManager()
     pm.setPlaybackRate(newTempo / 100)
+  }
+
+  const handleVolumeChange = (newVolume: number) => {
+    setVolume(newVolume)
+    audioSynthRef.current?.setVolume(newVolume)
   }
 
   const handleOpenSettings = () => {
@@ -310,6 +334,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
         currentTime={displayTime}
         duration={duration}
         tempo={tempo}
+        volume={volume}
         leftHandActive={leftHandActive}
         rightHandActive={rightHandActive}
         onPlayPause={handlePlayPause}
@@ -317,6 +342,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
         onStepBackward={handleStepBackward}
         onTimeChange={handleTimeChange}
         onTempoChange={handleTempoChange}
+        onVolumeChange={handleVolumeChange}
         onLeftHandToggle={toggleLeftHand}
         onRightHandToggle={toggleRightHand}
       />

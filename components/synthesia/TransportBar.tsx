@@ -1,12 +1,14 @@
 'use client'
 
 import * as React from 'react'
-import { 
-  Play, 
-  Pause, 
-  Square, 
+import {
+  Play,
+  Pause,
+  Square,
   SkipBack,
   Hand,
+  Volume2,
+  VolumeX,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
@@ -32,6 +34,7 @@ export const TransportBar: React.FC<TransportBarProps> = ({
   currentTime,
   duration,
   tempo,
+  volume,
   leftHandActive,
   rightHandActive,
   onPlayPause,
@@ -39,12 +42,13 @@ export const TransportBar: React.FC<TransportBarProps> = ({
   onStepBackward,
   onTimeChange,
   onTempoChange,
+  onVolumeChange,
   onLeftHandToggle,
   onRightHandToggle,
 }) => {
   return (
     <div className="w-full bg-zinc-900 border-t border-zinc-800 p-4 flex flex-col gap-4">
-      {/* Timeline Scrubber (Step 9) */}
+      {/* Timeline Scrubber */}
       <div className="flex items-center gap-4">
         {/* Current Time */}
         <span className="font-mono text-sm text-zinc-400 w-14 text-right tabular-nums">
@@ -71,7 +75,7 @@ export const TransportBar: React.FC<TransportBarProps> = ({
 
       {/* Controls Row */}
       <div className="flex items-center justify-between gap-4">
-        {/* Track Isolation - Left Side (Step 11) */}
+        {/* Track Isolation - Left Side */}
         <div className="flex items-center gap-2">
           <span className="text-xs text-zinc-500 uppercase tracking-wider mr-2 hidden sm:inline">
             Tracks
@@ -106,7 +110,7 @@ export const TransportBar: React.FC<TransportBarProps> = ({
           </Button>
         </div>
 
-        {/* Primary Playback Controls - Center (Step 10) */}
+        {/* Primary Playback Controls - Center */}
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -142,8 +146,25 @@ export const TransportBar: React.FC<TransportBarProps> = ({
           </Button>
         </div>
 
-        {/* Settings & Tempo - Right Side (Step 12) */}
+        {/* Settings, Volume & Tempo - Right Side */}
         <div className="flex items-center gap-4">
+          {/* Volume Slider */}
+          <div className="hidden sm:flex items-center gap-2">
+            {volume === 0 ? (
+              <VolumeX className="w-4 h-4 text-zinc-500" />
+            ) : (
+              <Volume2 className="w-4 h-4 text-zinc-500" />
+            )}
+            <Slider
+              value={[volume]}
+              min={0}
+              max={127}
+              step={1}
+              onValueChange={(value) => onVolumeChange(value[0])}
+              className="w-20 [&_[data-slot=slider-track]]:bg-zinc-700 [&_[data-slot=slider-range]]:bg-zinc-500 [&_[data-slot=slider-thumb]]:border-zinc-500"
+            />
+          </div>
+
           {/* Tempo Slider */}
           <div className="hidden md:flex items-center gap-2">
             <span className="text-xs text-zinc-500 uppercase tracking-wider">
@@ -162,7 +183,7 @@ export const TransportBar: React.FC<TransportBarProps> = ({
             </span>
           </div>
 
-          {/* Key/Transpose Dropdown (Step 13) */}
+          {/* Key/Transpose Dropdown */}
           <div className="hidden lg:flex items-center gap-2">
             <span className="text-xs text-zinc-500 uppercase tracking-wider">
               Key
