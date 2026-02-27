@@ -83,6 +83,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
     }
   }, [])
 
+
   // ─── Cleanup on unmount ─────────────────────────────────────────
   React.useEffect(() => {
     return () => {
@@ -246,6 +247,24 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
       setPlaying(true)
     }
   }
+
+  // ─── Spacebar Play/Pause shortcut ─────────────────────────────────
+  const handlePlayPauseRef = React.useRef(handlePlayPause)
+  React.useEffect(() => { handlePlayPauseRef.current = handlePlayPause })
+
+  React.useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !e.repeat) {
+        // Don't trigger if user is typing in an input/textarea
+        const tag = (e.target as HTMLElement)?.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+        e.preventDefault()
+        handlePlayPauseRef.current()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   const handleStop = () => {
     const pm = getPlaybackManager()
