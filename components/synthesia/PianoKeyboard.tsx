@@ -104,12 +104,8 @@ const PianoKeyboardBase = React.forwardRef<HTMLDivElement>((_, ref) => {
               'border-r border-zinc-300 last:border-r-0',
               'rounded-b-md',
               'shadow-sm',
-              'transition-colors duration-75',
-              // Zero-latency visual hooks (Step 7)
-              // External engine can toggle data-active via DOM manipulation
+              // Active state: instant color swap, NO transitions or shadows (they stall WebGL)
               'data-[active=true]:bg-purple-500',
-              'data-[active=true]:shadow-lg',
-              'data-[active=true]:shadow-purple-500/50',
               // Hover state for testing
               'hover:bg-zinc-100',
               'active:bg-purple-400',
@@ -140,11 +136,8 @@ const PianoKeyboardBase = React.forwardRef<HTMLDivElement>((_, ref) => {
               'rounded-b-md',
               'shadow-md',
               'z-10',
-              'transition-colors duration-75',
-              // Zero-latency visual hooks (Step 7)
+              // Active state: instant color swap, NO transitions or shadows (they stall WebGL)
               'data-[active=true]:bg-purple-600',
-              'data-[active=true]:shadow-lg',
-              'data-[active=true]:shadow-purple-600/50',
               // Hover state for testing
               'hover:bg-zinc-800',
               'active:bg-purple-500',
