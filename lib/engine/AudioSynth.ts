@@ -156,11 +156,10 @@ export class AudioSynth {
     }
 
     /**
-     * INSTANT STOP: Kill all audio immediately using the master GainNode.
-     * This is much more reliable than smplr's .stop() because it kills
-     * both currently-playing AND future-scheduled notes.
+     * SILENCE: Kill all audio immediately but KEEP the dedup set.
+     * Use this for pause — notes won't be re-triggered on unpause.
      */
-    stopAll(): void {
+    silence(): void {
         // Instantly ramp gain to 0 (kills all audio in ~20ms)
         const now = this.audioContext.currentTime
         this.masterGain.gain.cancelScheduledValues(now)
@@ -175,8 +174,14 @@ export class AudioSynth {
                 // Ignore
             }
         }
+    }
 
-        // Clear dedup set so notes can be re-scheduled after stop/seek
+    /**
+     * FULL STOP: Kill all audio AND clear dedup set.
+     * Use this for stop/seek — allows notes to be re-scheduled from new position.
+     */
+    stopAll(): void {
+        this.silence()
         this.scheduledNotes.clear()
     }
 

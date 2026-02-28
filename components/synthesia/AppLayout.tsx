@@ -243,7 +243,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
 
     if (isPlaying) {
       pm.pause()
-      audioSynthRef.current?.stopAll()
+      audioSynthRef.current?.silence() // Silence but keep dedup — prevents re-trigger on unpause
       setPlaying(false)
     } else {
       if (!audioSynthRef.current) {
