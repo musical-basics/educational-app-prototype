@@ -106,7 +106,7 @@ export class AudioSynth {
 
         // Binary search: find first note that starts at or after current position
         // Notes are sorted by startTimeSec
-        const searchStart = songOffset - 0.1
+        const searchStart = songOffset
         let lo = 0
         let hi = notes.length
         while (lo < hi) {
@@ -131,7 +131,10 @@ export class AudioSynth {
             if (mutedTracks.has(note.trackId)) continue
             if (this.scheduledNotes.has(note.id)) continue
             if (note.endTimeSec <= songOffset) continue
-            if (noteStartInSong < -0.1) continue
+
+            // Drop notes whose attack is already in the past — prevents
+            // machine-gun "catch-up" burst when unpausing
+            if (ctxTime < ctx.currentTime - 0.03) continue
 
             const duration = note.durationSec / playbackRate
 
@@ -139,7 +142,7 @@ export class AudioSynth {
                 this.soundfont.start({
                     note: note.pitch,
                     velocity: note.velocity,
-                    time: Math.max(ctxTime, ctx.currentTime),
+                    time: ctxTime,
                     duration: Math.max(duration, 0.05),
                 })
                 scheduled++
