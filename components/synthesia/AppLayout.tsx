@@ -256,6 +256,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
       }
 
       pm.setPlaybackRate(tempo / 100)
+      audioSynthRef.current?.clearScheduled() // Clear dedup so notes re-schedule from current position
       await pm.play()
       setPlaying(true)
     }

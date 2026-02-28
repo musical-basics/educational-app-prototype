@@ -185,6 +185,14 @@ export class AudioSynth {
         this.scheduledNotes.clear()
     }
 
+    /**
+     * Clear the scheduling dedup set only (no audio changes).
+     * Call this on unpause to allow re-scheduling from current position.
+     */
+    clearScheduled(): void {
+        this.scheduledNotes.clear()
+    }
+
     setVolume(v: number): void {
         this._volume = Math.max(0, Math.min(127, v))
         // Update gain node directly
