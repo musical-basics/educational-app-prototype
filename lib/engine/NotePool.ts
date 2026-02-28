@@ -63,13 +63,13 @@ export class NotePool {
         g.roundRect(0, 0, width, height, radius)
         g.fill({ color: 0xFFFFFF, alpha: 0.9 })
 
-        // Inner highlight (top portion for 3D effect)
+        // Inner highlight (top portion for subtle 3D effect)
         g.roundRect(1, 1, width - 2, height * 0.4, radius)
-        g.fill({ color: 0xFFFFFF, alpha: 0.3 })
+        g.fill({ color: 0xFFFFFF, alpha: 0.12 })
 
         // Inner shadow (bottom edge)
         g.roundRect(1, height * 0.7, width - 2, height * 0.28, radius)
-        g.fill({ color: 0x000000, alpha: 0.15 })
+        g.fill({ color: 0x000000, alpha: 0.06 })
 
         // Subtle border
         g.roundRect(0.5, 0.5, width - 1, height - 1, radius)

@@ -1,0 +1,3210 @@
+This file is a merged representation of a subset of the codebase, containing files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching these patterns are excluded: node_modules, .next, pnpm-lock.yaml, components/ui/**, public/**, .DS_Store, *.png, *.jpg, *.svg, repomix-output.*, repomix.config.json, *.xml
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/
+  globals.css
+  layout.tsx
+  page.tsx
+components/
+  synthesia/
+    AppLayout.tsx
+    index.ts
+    PianoKeyboard.tsx
+    Toolbar.tsx
+    TransportBar.tsx
+  theme-provider.tsx
+hooks/
+  use-mobile.ts
+  use-toast.ts
+lib/
+  engine/
+    AudioSynth.ts
+    NotePool.ts
+    pianoMetrics.ts
+    PlaybackManager.ts
+    waterfallMath.ts
+    WaterfallRenderer.ts
+  midi/
+    parser.ts
+  store.ts
+  types.ts
+  utils.ts
+styles/
+  globals.css
+.gitignore
+components.json
+next.config.mjs
+package.json
+postcss.config.mjs
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/globals.css">
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
+
+@theme inline {
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+</file>
+
+<file path="app/layout.tsx">
+import type { Metadata } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
+import './globals.css'
+
+const _geist = Geist({ subsets: ["latin"] });
+const _geistMono = Geist_Mono({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: 'SynthUI - Educational Piano Visualizer',
+  description: 'Learn piano with falling notes visualization - A Synthesia/SeeMusic clone',
+  generator: 'v0.app',
+  icons: {
+    icon: [
+      {
+        url: '/icon-light-32x32.png',
+        media: '(prefers-color-scheme: light)',
+      },
+      {
+        url: '/icon-dark-32x32.png',
+        media: '(prefers-color-scheme: dark)',
+      },
+      {
+        url: '/icon.svg',
+        type: 'image/svg+xml',
+      },
+    ],
+    apple: '/apple-icon.png',
+  },
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="en">
+      <body className="font-sans antialiased">
+        {children}
+        <Analytics />
+      </body>
+    </html>
+  )
+}
+</file>
+
+<file path="app/page.tsx">
+import { AppLayout } from '@/components/synthesia'
+
+export default function Page() {
+  return <AppLayout />
+}
+</file>
+
+<file path="components/synthesia/index.ts">
+// Synthesia Clone UI Components
+// Export all components for easy importing
+
+export { AppLayout } from './AppLayout'
+export { PianoKeyboard } from './PianoKeyboard'
+export { TransportBar } from './TransportBar'
+export { Toolbar } from './Toolbar'
+
+// Re-export types
+export type { AppState, TransportBarProps, ToolbarProps, PianoKeyProps } from '@/lib/types'
+</file>
+
+<file path="components/synthesia/Toolbar.tsx">
+'use client'
+
+import * as React from 'react'
+import { Music, Settings, Upload } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import type { ToolbarProps } from '@/lib/types'
+
+export const Toolbar: React.FC<ToolbarProps> = ({
+  songTitle,
+  onLoadMidi,
+  onOpenSettings,
+}) => {
+  return (
+    <div className="absolute top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-md border-b border-white/10">
+      <div className="flex items-center justify-between p-4">
+        {/* Left: Logo & Load MIDI */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center">
+              <Music className="w-5 h-5 text-white" />
+            </div>
+            <span className="font-semibold text-white tracking-tight hidden sm:inline">
+              SynthUI
+            </span>
+          </div>
+
+          <Button
+            onClick={onLoadMidi}
+            className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-600/25"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Load MIDI
+          </Button>
+        </div>
+
+        {/* Center: Song Title */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block">
+          <h1 className="text-white font-medium text-lg truncate max-w-xs lg:max-w-md text-balance">
+            {songTitle || 'No song loaded'}
+          </h1>
+        </div>
+
+        {/* Right: Settings */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onOpenSettings}
+            className="text-zinc-400 hover:text-white hover:bg-white/10"
+          >
+            <Settings className="w-5 h-5" />
+            <span className="sr-only">Settings</span>
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default Toolbar
+</file>
+
+<file path="components/theme-provider.tsx">
+'use client'
+
+import * as React from 'react'
+import {
+  ThemeProvider as NextThemesProvider,
+  type ThemeProviderProps,
+} from 'next-themes'
+
+export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
+  return <NextThemesProvider {...props}>{children}</NextThemesProvider>
+}
+</file>
+
+<file path="hooks/use-mobile.ts">
+import * as React from 'react'
+
+const MOBILE_BREAKPOINT = 768
+
+export function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+
+  React.useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+    const onChange = () => {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    }
+    mql.addEventListener('change', onChange)
+    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    return () => mql.removeEventListener('change', onChange)
+  }, [])
+
+  return !!isMobile
+}
+</file>
+
+<file path="hooks/use-toast.ts">
+'use client'
+
+// Inspired by react-hot-toast library
+import * as React from 'react'
+
+import type { ToastActionElement, ToastProps } from '@/components/ui/toast'
+
+const TOAST_LIMIT = 1
+const TOAST_REMOVE_DELAY = 1000000
+
+type ToasterToast = ToastProps & {
+  id: string
+  title?: React.ReactNode
+  description?: React.ReactNode
+  action?: ToastActionElement
+}
+
+const actionTypes = {
+  ADD_TOAST: 'ADD_TOAST',
+  UPDATE_TOAST: 'UPDATE_TOAST',
+  DISMISS_TOAST: 'DISMISS_TOAST',
+  REMOVE_TOAST: 'REMOVE_TOAST',
+} as const
+
+let count = 0
+
+function genId() {
+  count = (count + 1) % Number.MAX_SAFE_INTEGER
+  return count.toString()
+}
+
+type ActionType = typeof actionTypes
+
+type Action =
+  | {
+      type: ActionType['ADD_TOAST']
+      toast: ToasterToast
+    }
+  | {
+      type: ActionType['UPDATE_TOAST']
+      toast: Partial<ToasterToast>
+    }
+  | {
+      type: ActionType['DISMISS_TOAST']
+      toastId?: ToasterToast['id']
+    }
+  | {
+      type: ActionType['REMOVE_TOAST']
+      toastId?: ToasterToast['id']
+    }
+
+interface State {
+  toasts: ToasterToast[]
+}
+
+const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
+
+const addToRemoveQueue = (toastId: string) => {
+  if (toastTimeouts.has(toastId)) {
+    return
+  }
+
+  const timeout = setTimeout(() => {
+    toastTimeouts.delete(toastId)
+    dispatch({
+      type: 'REMOVE_TOAST',
+      toastId: toastId,
+    })
+  }, TOAST_REMOVE_DELAY)
+
+  toastTimeouts.set(toastId, timeout)
+}
+
+export const reducer = (state: State, action: Action): State => {
+  switch (action.type) {
+    case 'ADD_TOAST':
+      return {
+        ...state,
+        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
+      }
+
+    case 'UPDATE_TOAST':
+      return {
+        ...state,
+        toasts: state.toasts.map((t) =>
+          t.id === action.toast.id ? { ...t, ...action.toast } : t,
+        ),
+      }
+
+    case 'DISMISS_TOAST': {
+      const { toastId } = action
+
+      // ! Side effects ! - This could be extracted into a dismissToast() action,
+      // but I'll keep it here for simplicity
+      if (toastId) {
+        addToRemoveQueue(toastId)
+      } else {
+        state.toasts.forEach((toast) => {
+          addToRemoveQueue(toast.id)
+        })
+      }
+
+      return {
+        ...state,
+        toasts: state.toasts.map((t) =>
+          t.id === toastId || toastId === undefined
+            ? {
+                ...t,
+                open: false,
+              }
+            : t,
+        ),
+      }
+    }
+    case 'REMOVE_TOAST':
+      if (action.toastId === undefined) {
+        return {
+          ...state,
+          toasts: [],
+        }
+      }
+      return {
+        ...state,
+        toasts: state.toasts.filter((t) => t.id !== action.toastId),
+      }
+  }
+}
+
+const listeners: Array<(state: State) => void> = []
+
+let memoryState: State = { toasts: [] }
+
+function dispatch(action: Action) {
+  memoryState = reducer(memoryState, action)
+  listeners.forEach((listener) => {
+    listener(memoryState)
+  })
+}
+
+type Toast = Omit<ToasterToast, 'id'>
+
+function toast({ ...props }: Toast) {
+  const id = genId()
+
+  const update = (props: ToasterToast) =>
+    dispatch({
+      type: 'UPDATE_TOAST',
+      toast: { ...props, id },
+    })
+  const dismiss = () => dispatch({ type: 'DISMISS_TOAST', toastId: id })
+
+  dispatch({
+    type: 'ADD_TOAST',
+    toast: {
+      ...props,
+      id,
+      open: true,
+      onOpenChange: (open) => {
+        if (!open) dismiss()
+      },
+    },
+  })
+
+  return {
+    id: id,
+    dismiss,
+    update,
+  }
+}
+
+function useToast() {
+  const [state, setState] = React.useState<State>(memoryState)
+
+  React.useEffect(() => {
+    listeners.push(setState)
+    return () => {
+      const index = listeners.indexOf(setState)
+      if (index > -1) {
+        listeners.splice(index, 1)
+      }
+    }
+  }, [state])
+
+  return {
+    ...state,
+    toast,
+    dismiss: (toastId?: string) => dispatch({ type: 'DISMISS_TOAST', toastId }),
+  }
+}
+
+export { useToast, toast }
+</file>
+
+<file path="lib/engine/pianoMetrics.ts">
+/**
+ * Piano Metrics — Mathematical Coordinate System
+ *
+ * DESIGN DECISION: Rather than duplicating the CSS flexbox math, we use
+ * getBoundingClientRect() on the actual rendered DOM piano keys to get
+ * pixel-perfect alignment. This guarantees the PixiJS waterfall notes
+ * always land exactly on the CSS piano keys, even after window resize.
+ *
+ * Fallback: If DOM nodes aren't available (e.g., during tests), we
+ * provide a pure-math fallback that mirrors the CSS layout logic.
+ */
+
+// ─── Constants ─────────────────────────────────────────────────────
+
+/** Standard 88-key piano: MIDI 21 (A0) to MIDI 108 (C8) */
+export const MIDI_MIN = 21
+export const MIDI_MAX = 108
+export const TOTAL_KEYS = 88
+export const WHITE_KEY_COUNT = 52
+export const BLACK_KEY_COUNT = 36
+
+/** Black note indices within an octave (C=0) */
+const BLACK_NOTE_INDICES = new Set([1, 3, 6, 8, 10]) // C#, D#, F#, G#, A#
+
+/** Per-note offsets for black key centering (matches PianoKeyboard.tsx) */
+const BLACK_KEY_OFFSETS: Record<number, number> = {
+    1: -0.15,   // C#
+    3: 0.15,    // D#
+    6: -0.1,    // F#
+    8: 0,       // G#
+    10: 0.1,    // A#
+}
+
+// ─── Types ─────────────────────────────────────────────────────────
+
+export interface KeyMetrics {
+    /** MIDI pitch number (21-108) */
+    pitch: number
+    /** Whether this is a black key */
+    isBlack: boolean
+    /** X position in pixels (left edge) */
+    x: number
+    /** Width in pixels */
+    width: number
+}
+
+export interface PianoMetrics {
+    /** Metrics for all 88 keys, indexed by MIDI pitch (21-108) */
+    keys: Map<number, KeyMetrics>
+    /** Container width in pixels */
+    containerWidth: number
+    /** Single white key width in pixels */
+    whiteKeyWidth: number
+    /** Black key width in pixels */
+    blackKeyWidth: number
+}
+
+// ─── Helper ────────────────────────────────────────────────────────
+
+export function isBlackKey(pitch: number): boolean {
+    return BLACK_NOTE_INDICES.has(pitch % 12)
+}
+
+/**
+ * Count white keys from MIDI 21 up to (but not including) the given pitch.
+ */
+function countWhiteKeysBefore(pitch: number): number {
+    let count = 0
+    for (let p = MIDI_MIN; p < pitch; p++) {
+        if (!isBlackKey(p)) count++
+    }
+    return count
+}
+
+// ─── DOM-Based Metrics (Primary) ───────────────────────────────────
+
+/**
+ * Read pixel positions from the actual rendered piano DOM nodes.
+ * The PianoKeyboard component renders keys with id="key-{midiNote}".
+ *
+ * Call this on mount and on ResizeObserver triggers.
+ */
+export function calculatePianoMetricsFromDOM(
+    pianoContainerEl: HTMLElement
+): PianoMetrics | null {
+    const containerRect = pianoContainerEl.getBoundingClientRect()
+    if (containerRect.width === 0) return null
+
+    const keys = new Map<number, KeyMetrics>()
+    let whiteKeyWidth = 0
+    let blackKeyWidth = 0
+
+    for (let pitch = MIDI_MIN; pitch <= MIDI_MAX; pitch++) {
+        const el = document.getElementById(`key-${pitch}`)
+        if (!el) continue
+
+        const rect = el.getBoundingClientRect()
+        const x = rect.left - containerRect.left
+        const width = rect.width
+        const black = isBlackKey(pitch)
+
+        if (!black && whiteKeyWidth === 0) whiteKeyWidth = width
+        if (black && blackKeyWidth === 0) blackKeyWidth = width
+
+        keys.set(pitch, { pitch, isBlack: black, x, width })
+    }
+
+    return {
+        keys,
+        containerWidth: containerRect.width,
+        whiteKeyWidth,
+        blackKeyWidth,
+    }
+}
+
+// ─── Pure-Math Fallback ────────────────────────────────────────────
+
+/**
+ * Calculate piano key positions from pure math, mirroring the CSS in
+ * PianoKeyboard.tsx (52 flex-1 white keys, black keys at 60% width
+ * positioned on white key seams with per-note offsets).
+ */
+export function calculatePianoMetrics(containerWidth: number): PianoMetrics {
+    const whiteKeyWidth = containerWidth / WHITE_KEY_COUNT
+    const blackKeyWidth = whiteKeyWidth * 0.6
+    const keys = new Map<number, KeyMetrics>()
+
+    let whiteIndex = 0
+
+    for (let pitch = MIDI_MIN; pitch <= MIDI_MAX; pitch++) {
+        const black = isBlackKey(pitch)
+
+        if (black) {
+            // Black key sits on the seam of the previous white key
+            const noteInOctave = pitch % 12
+            const offset = BLACK_KEY_OFFSETS[noteInOctave] ?? 0
+            const baseX = (whiteIndex) * whiteKeyWidth // right edge of previous white key
+            const x = baseX - (blackKeyWidth / 2) + (offset * whiteKeyWidth)
+
+            keys.set(pitch, { pitch, isBlack: true, x, width: blackKeyWidth })
+        } else {
+            const x = whiteIndex * whiteKeyWidth
+            keys.set(pitch, { pitch, isBlack: false, x, width: whiteKeyWidth })
+            whiteIndex++
+        }
+    }
+
+    return {
+        keys,
+        containerWidth,
+        whiteKeyWidth,
+        blackKeyWidth,
+    }
+}
+
+// ─── Convenience ───────────────────────────────────────────────────
+
+/**
+ * Get the X position and width for a falling note at the given pitch.
+ * Returns null if pitch is out of the 21-108 range.
+ */
+export function getNoteX(
+    pitch: number,
+    metrics: PianoMetrics
+): { x: number; width: number } | null {
+    const key = metrics.keys.get(pitch)
+    if (!key) return null
+    return { x: key.x, width: key.width }
+}
+</file>
+
+<file path="lib/engine/waterfallMath.ts">
+/**
+ * Waterfall Math — Y-axis positioning for falling notes
+ *
+ * Core equations (strictly time-based, never physics-based):
+ *   Y = strikeLineY - ((note.startTimeSec - logicalPlaybackTime) * pixelsPerSecond)
+ *   Height = note.durationSec * pixelsPerSecond
+ *
+ * Notes fall downward: future notes have Y < strikeLineY (above),
+ * currently-playing notes span the strike line, past notes have Y > strikeLineY (below).
+ */
+
+import type { NoteEvent } from '../types'
+
+// ─── Types ─────────────────────────────────────────────────────────
+
+export interface WaterfallConfig {
+    /** Y coordinate of the strike line (bottom of canvas, where notes hit the piano) */
+    strikeLineY: number
+    /** Pixels per second — how fast notes fall (controlled by zoom level) */
+    pixelsPerSecond: number
+    /** Canvas height in pixels */
+    canvasHeight: number
+}
+
+export interface NoteRect {
+    /** Top edge Y in canvas pixels */
+    y: number
+    /** Height in canvas pixels */
+    height: number
+}
+
+// ─── Core Math ─────────────────────────────────────────────────────
+
+/**
+ * Calculate the Y position and height for a falling note.
+ *
+ * The note's top edge is determined by how far into the future it starts,
+ * and its height is determined by its duration.
+ *
+ * At logicalTime == note.startTimeSec, the top of the note reaches the strike line.
+ * At logicalTime == note.endTimeSec, the bottom of the note passes the strike line.
+ */
+export function getNoteRect(
+    note: NoteEvent,
+    logicalTime: number,
+    config: WaterfallConfig
+): NoteRect {
+    const { strikeLineY, pixelsPerSecond } = config
+
+    // Time until the note starts (negative = already started)
+    const timeUntilStart = note.startTimeSec - logicalTime
+
+    // Y is measured from top of canvas (0 = top)
+    // A note in the future has timeUntilStart > 0, so it should be above the strike line
+    const y = strikeLineY - (timeUntilStart * pixelsPerSecond)
+
+    // Height is always positive, based on duration
+    const height = note.durationSec * pixelsPerSecond
+
+    // The note's visual top edge (y - height because it extends upward from the bottom edge)
+    return {
+        y: y - height,
+        height,
+    }
+}
+
+/**
+ * Check if a note is currently being struck (crossing the strike line).
+ */
+export function isNoteActive(note: NoteEvent, logicalTime: number): boolean {
+    return logicalTime >= note.startTimeSec && logicalTime <= note.endTimeSec
+}
+
+/**
+ * Check if a note rectangle is visible within the canvas bounds.
+ */
+export function isNoteVisible(rect: NoteRect, canvasHeight: number): boolean {
+    // Note is visible if its bottom edge is below the top of canvas
+    // AND its top edge is above the bottom of canvas
+    return (rect.y + rect.height) > 0 && rect.y < canvasHeight
+}
+
+/**
+ * Calculate how many seconds of music are visible in the canvas.
+ * Used for the binary search lookahead in getVisibleNotes().
+ */
+export function getLookaheadSeconds(config: WaterfallConfig): number {
+    return config.canvasHeight / config.pixelsPerSecond
+}
+</file>
+
+<file path="lib/midi/parser.ts">
+import { Midi } from '@tonejs/midi'
+import type { NoteEvent, ParsedMidi } from '../types'
+
+/**
+ * Parse a binary MIDI file buffer into a normalized, sorted NoteEvent array.
+ *
+ * Key design decisions:
+ * - All timings are in absolute seconds (not ticks), accounting for tempo changes
+ * - The output array is sorted by startTimeSec (ascending) for O(log n) binary search culling
+ * - Each note has a unique `id` for object pool keying
+ * - @tonejs/midi handles tick-to-second conversion using the tempo map internally
+ */
+export function parseMidiFile(buffer: ArrayBuffer, fileName?: string): ParsedMidi {
+    const midi = new Midi(buffer)
+
+    // ─── Extract tempo map ──────────────────────────────────────────
+    const tempoChanges = midi.header.tempos.map((t) => ({
+        time: t.time ?? 0,
+        bpm: t.bpm,
+    }))
+
+    // ─── Flatten all tracks into a single NoteEvent[] ───────────────
+    const notes: NoteEvent[] = []
+    let noteIdCounter = 0
+
+    midi.tracks.forEach((track, trackIndex) => {
+        track.notes.forEach((note) => {
+            const startTimeSec = note.time
+            const durationSec = note.duration
+            const endTimeSec = startTimeSec + durationSec
+
+            notes.push({
+                id: `n-${noteIdCounter++}`,
+                pitch: note.midi, // 21 (A0) to 108 (C8)
+                startTimeSec,
+                endTimeSec,
+                durationSec,
+                velocity: Math.round(note.velocity * 127), // @tonejs/midi normalizes to 0-1
+                trackId: trackIndex,
+            })
+        })
+    })
+
+    // ─── Sort by startTimeSec (ascending) ───────────────────────────
+    // MANDATORY for binary search culling in the render loop (Phase 6)
+    notes.sort((a, b) => a.startTimeSec - b.startTimeSec)
+
+    // ─── Calculate total duration ───────────────────────────────────
+    const durationSec =
+        notes.length > 0
+            ? Math.max(...notes.map((n) => n.endTimeSec))
+            : 0
+
+    // ─── Clean file name ────────────────────────────────────────────
+    const name = fileName
+        ? fileName.replace(/\.(mid|midi)$/i, '').replace(/[_-]/g, ' ')
+        : midi.name || 'Untitled'
+
+    return {
+        name,
+        durationSec,
+        notes,
+        trackCount: midi.tracks.length,
+        tempoChanges,
+    }
+}
+
+/**
+ * Binary search to find the index of the first note that starts at or after `time`.
+ * Used by the render loop for O(log n) view-frustum culling.
+ */
+export function findFirstNoteIndex(notes: NoteEvent[], time: number): number {
+    let lo = 0
+    let hi = notes.length
+
+    while (lo < hi) {
+        const mid = (lo + hi) >>> 1
+        if (notes[mid].startTimeSec < time) {
+            lo = mid + 1
+        } else {
+            hi = mid
+        }
+    }
+
+    return lo
+}
+
+/**
+ * Get the visible slice of notes for the current playback time.
+ * Returns only notes that are currently on screen (between time and time + lookahead)
+ * or currently being played (startTimeSec <= time <= endTimeSec).
+ *
+ * @param notes - Sorted NoteEvent array
+ * @param currentTime - Current playback time in seconds
+ * @param lookaheadSec - How many seconds ahead to look (based on canvas height / pixelsPerSecond)
+ */
+export function getVisibleNotes(
+    notes: NoteEvent[],
+    currentTime: number,
+    lookaheadSec: number
+): NoteEvent[] {
+    if (notes.length === 0) return []
+
+    const windowStart = currentTime
+    const windowEnd = currentTime + lookaheadSec
+
+    // Binary search for the first note that could be visible
+    // We need notes where endTimeSec > currentTime,
+    // so we search backwards from the first note starting at currentTime
+    let startIdx = findFirstNoteIndex(notes, windowStart)
+
+    // Walk backwards to include notes that started before windowStart but haven't ended
+    while (startIdx > 0 && notes[startIdx - 1].endTimeSec > windowStart) {
+        startIdx--
+    }
+
+    // Collect visible notes
+    const visible: NoteEvent[] = []
+    for (let i = startIdx; i < notes.length; i++) {
+        const note = notes[i]
+
+        // Past the lookahead window — stop
+        if (note.startTimeSec > windowEnd) break
+
+        // Note is visible if it overlaps the [windowStart, windowEnd] range
+        if (note.endTimeSec > windowStart) {
+            visible.push(note)
+        }
+    }
+
+    return visible
+}
+</file>
+
+<file path="lib/store.ts">
+import { create } from 'zustand'
+import type { ParsedMidi } from './types'
+
+// ─── Store Interface ───────────────────────────────────────────────
+// CRITICAL: currentTime and animation frame data are NEVER stored here.
+// They live in PlaybackManager (polled by PixiJS Ticker) to avoid
+// React re-rendering 60+ times per second.
+
+interface SynthStore {
+    // Playback state (UI-driven, not time-critical)
+    isPlaying: boolean
+    tempo: number // percentage (50-200), default 100
+    leftHandActive: boolean
+    rightHandActive: boolean
+
+    // MIDI data
+    parsedMidi: ParsedMidi | null
+    songTitle: string
+    duration: number // total song duration in seconds
+
+    // Display
+    zoomLevel: number // pixels per second for waterfall
+
+    // Actions
+    setPlaying: (playing: boolean) => void
+    setTempo: (tempo: number) => void
+    toggleLeftHand: () => void
+    toggleRightHand: () => void
+    loadMidi: (midi: ParsedMidi) => void
+    clearMidi: () => void
+    setZoomLevel: (zoom: number) => void
+}
+
+export const useSynthStore = create<SynthStore>((set) => ({
+    // Initial state
+    isPlaying: false,
+    tempo: 100,
+    leftHandActive: true,
+    rightHandActive: true,
+    parsedMidi: null,
+    songTitle: '',
+    duration: 0,
+    zoomLevel: 200, // 200 pixels per second default
+
+    // Actions
+    setPlaying: (playing) => set({ isPlaying: playing }),
+    setTempo: (tempo) => set({ tempo }),
+    toggleLeftHand: () => set((s) => ({ leftHandActive: !s.leftHandActive })),
+    toggleRightHand: () => set((s) => ({ rightHandActive: !s.rightHandActive })),
+    loadMidi: (midi) =>
+        set({
+            parsedMidi: midi,
+            songTitle: midi.name,
+            duration: midi.durationSec,
+        }),
+    clearMidi: () =>
+        set({
+            parsedMidi: null,
+            songTitle: '',
+            duration: 0,
+            isPlaying: false,
+        }),
+    setZoomLevel: (zoom) => set({ zoomLevel: zoom }),
+}))
+</file>
+
+<file path="lib/utils.ts">
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+</file>
+
+<file path="styles/globals.css">
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
+
+@theme inline {
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+</file>
+
+<file path=".gitignore">
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# next.js
+.next/
+out/
+
+# production
+build/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# env files
+.env
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# repomix
+repomix-output.*
+</file>
+
+<file path="components.json">
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "app/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  },
+  "iconLibrary": "lucide"
+}
+</file>
+
+<file path="postcss.config.mjs">
+/** @type {import('postcss-load-config').Config} */
+const config = {
+  plugins: {
+    '@tailwindcss/postcss': {},
+  },
+}
+
+export default config
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "target": "ES6",
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "my-project",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.9.1",
+    "@radix-ui/react-accordion": "1.2.12",
+    "@radix-ui/react-alert-dialog": "1.1.15",
+    "@radix-ui/react-aspect-ratio": "1.1.8",
+    "@radix-ui/react-avatar": "1.1.11",
+    "@radix-ui/react-checkbox": "1.3.3",
+    "@radix-ui/react-collapsible": "1.1.12",
+    "@radix-ui/react-context-menu": "2.2.16",
+    "@radix-ui/react-dialog": "1.1.15",
+    "@radix-ui/react-dropdown-menu": "2.1.16",
+    "@radix-ui/react-hover-card": "1.1.15",
+    "@radix-ui/react-label": "2.1.8",
+    "@radix-ui/react-menubar": "1.1.16",
+    "@radix-ui/react-navigation-menu": "1.2.14",
+    "@radix-ui/react-popover": "1.1.15",
+    "@radix-ui/react-progress": "1.1.8",
+    "@radix-ui/react-radio-group": "1.3.8",
+    "@radix-ui/react-scroll-area": "1.2.10",
+    "@radix-ui/react-select": "2.2.6",
+    "@radix-ui/react-separator": "1.1.8",
+    "@radix-ui/react-slider": "1.3.6",
+    "@radix-ui/react-slot": "1.2.4",
+    "@radix-ui/react-switch": "1.2.6",
+    "@radix-ui/react-tabs": "1.1.13",
+    "@radix-ui/react-toast": "1.2.15",
+    "@radix-ui/react-toggle": "1.1.10",
+    "@radix-ui/react-toggle-group": "1.1.11",
+    "@radix-ui/react-tooltip": "1.2.8",
+    "@tonejs/midi": "^2.0.28",
+    "@vercel/analytics": "1.6.1",
+    "autoprefixer": "^10.4.20",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "1.1.1",
+    "date-fns": "4.1.0",
+    "embla-carousel-react": "8.6.0",
+    "input-otp": "1.4.2",
+    "lucide-react": "^0.564.0",
+    "next": "16.1.6",
+    "next-themes": "^0.4.6",
+    "pixi.js": "^8.16.0",
+    "react": "19.2.4",
+    "react-day-picker": "9.13.2",
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.54.1",
+    "react-resizable-panels": "^2.1.7",
+    "recharts": "2.15.0",
+    "smplr": "^0.18.1",
+    "sonner": "^1.7.1",
+    "tailwind-merge": "^3.3.1",
+    "vaul": "^1.1.2",
+    "zod": "^3.24.1",
+    "zustand": "^5.0.11"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.0",
+    "@types/node": "^22",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "postcss": "^8.5",
+    "tailwindcss": "^4.2.0",
+    "tw-animate-css": "1.3.3",
+    "typescript": "5.7.3"
+  }
+}
+</file>
+
+<file path="components/synthesia/PianoKeyboard.tsx">
+'use client'
+
+import * as React from 'react'
+import { cn } from '@/lib/utils'
+
+// An 88-key piano spans MIDI notes 21 (A0) to 108 (C8)
+// 52 white keys, 36 black keys
+// Pattern repeats: C C# D D# E F F# G G# A A# B
+
+// Generate the keyboard layout mathematically
+const generateKeyboard = () => {
+  const keys: Array<{
+    noteNumber: number
+    isBlack: boolean
+    noteName: string
+    whiteKeyIndex: number // For positioning black keys
+  }> = []
+
+  const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+  const blackNotes = [1, 3, 6, 8, 10] // C#, D#, F#, G#, A#
+
+  let whiteKeyIndex = 0
+
+  for (let midiNote = 21; midiNote <= 108; midiNote++) {
+    const noteInOctave = midiNote % 12
+    const octave = Math.floor(midiNote / 12) - 1
+    const isBlack = blackNotes.includes(noteInOctave)
+    const noteName = noteNames[noteInOctave] + octave
+
+    keys.push({
+      noteNumber: midiNote,
+      isBlack,
+      noteName,
+      whiteKeyIndex: isBlack ? whiteKeyIndex - 1 : whiteKeyIndex,
+    })
+
+    if (!isBlack) {
+      whiteKeyIndex++
+    }
+  }
+
+  return keys
+}
+
+const KEYBOARD_LAYOUT = generateKeyboard()
+const WHITE_KEYS = KEYBOARD_LAYOUT.filter(k => !k.isBlack)
+const BLACK_KEYS = KEYBOARD_LAYOUT.filter(k => k.isBlack)
+
+// Calculate black key position based on which white key it follows
+// Black keys sit on the seam between white keys, offset to the right
+const getBlackKeyPosition = (whiteKeyIndex: number, noteInOctave: number): number => {
+  // Each white key is 100%/52 wide
+  const whiteKeyWidth = 100 / 52
+
+  // Base position: right edge of the white key before the black key
+  const basePosition = (whiteKeyIndex + 1) * whiteKeyWidth
+
+  // Black key width is 60% of white key width
+  const blackKeyWidth = whiteKeyWidth * 0.6
+
+  // Center the black key on the seam, with slight adjustments for visual accuracy
+  // Different black keys have slightly different offsets in a real piano
+  let offset = 0
+  switch (noteInOctave) {
+    case 1: // C#
+      offset = -0.15
+      break
+    case 3: // D#
+      offset = 0.15
+      break
+    case 6: // F#
+      offset = -0.1
+      break
+    case 8: // G#
+      offset = 0
+      break
+    case 10: // A#
+      offset = 0.1
+      break
+  }
+
+  return basePosition - (blackKeyWidth / 2) + (offset * whiteKeyWidth)
+}
+
+const PianoKeyboardBase = React.forwardRef<HTMLDivElement>((_, ref) => {
+  return (
+    <div
+      ref={ref}
+      className="relative w-full h-32 md:h-36 lg:h-40 select-none"
+      role="application"
+      aria-label="88-key Piano Keyboard"
+    >
+      {/* White Keys - 52 total */}
+      <div className="flex flex-row w-full h-full">
+        {WHITE_KEYS.map((key) => (
+          <div
+            key={key.noteNumber}
+            id={`key-${key.noteNumber}`}
+            data-note={key.noteName}
+            data-active="false"
+            className={cn(
+              'flex-1 h-full',
+              'bg-white',
+              'border-r border-zinc-300 last:border-r-0',
+              'rounded-b-md',
+              'shadow-sm',
+              // Active state: instant color swap, NO transitions or shadows (they stall WebGL)
+              'data-[active=true]:bg-purple-500',
+              // Hover state for testing
+              'hover:bg-zinc-100',
+              'active:bg-purple-400',
+              'cursor-pointer'
+            )}
+            role="button"
+            aria-label={`Piano key ${key.noteName}`}
+          />
+        ))}
+      </div>
+
+      {/* Black Keys - 36 total, absolutely positioned */}
+      {BLACK_KEYS.map((key) => {
+        const noteInOctave = key.noteNumber % 12
+        const leftPercent = getBlackKeyPosition(key.whiteKeyIndex, noteInOctave)
+        const blackKeyWidth = (100 / 52) * 0.6
+
+        return (
+          <div
+            key={key.noteNumber}
+            id={`key-${key.noteNumber}`}
+            data-note={key.noteName}
+            data-active="false"
+            className={cn(
+              'absolute top-0',
+              'h-[65%]',
+              'bg-zinc-900',
+              'rounded-b-md',
+              'shadow-md',
+              'z-10',
+              // Active state: instant color swap, NO transitions or shadows (they stall WebGL)
+              'data-[active=true]:bg-purple-600',
+              // Hover state for testing
+              'hover:bg-zinc-800',
+              'active:bg-purple-500',
+              'cursor-pointer'
+            )}
+            style={{
+              left: `${leftPercent}%`,
+              width: `${blackKeyWidth}%`,
+            }}
+            role="button"
+            aria-label={`Piano key ${key.noteName}`}
+          />
+        )
+      })}
+    </div>
+  )
+})
+
+PianoKeyboardBase.displayName = 'PianoKeyboard'
+export const PianoKeyboard = React.memo(PianoKeyboardBase)
+export default PianoKeyboard
+</file>
+
+<file path="components/synthesia/TransportBar.tsx">
+'use client'
+
+import * as React from 'react'
+import {
+  Play,
+  Pause,
+  Square,
+  SkipBack,
+  Hand,
+  Volume2,
+  VolumeX,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Slider } from '@/components/ui/slider'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { cn } from '@/lib/utils'
+import type { TransportBarProps } from '@/lib/types'
+
+// Format time as MM:SS
+const formatTime = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60)
+  const secs = Math.floor(seconds % 60)
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+}
+
+const TransportBarBase: React.FC<TransportBarProps> = ({
+  isPlaying,
+  currentTime,
+  duration,
+  tempo,
+  volume,
+  leftHandActive,
+  rightHandActive,
+  onPlayPause,
+  onStop,
+  onStepBackward,
+  onTimeChange,
+  onTempoChange,
+  onVolumeChange,
+  onLeftHandToggle,
+  onRightHandToggle,
+}) => {
+  return (
+    <div className="w-full bg-zinc-900 border-t border-zinc-800 p-4 flex flex-col gap-4">
+      {/* Timeline Scrubber */}
+      <div className="flex items-center gap-4">
+        {/* Current Time */}
+        <span className="font-mono text-sm text-zinc-400 w-14 text-right tabular-nums">
+          {formatTime(currentTime)}
+        </span>
+
+        {/* Progress Slider */}
+        <div className="flex-1 relative">
+          <Slider
+            value={[currentTime]}
+            min={0}
+            max={duration || 100}
+            step={0.1}
+            onValueChange={(value) => onTimeChange(value[0])}
+            className="[&_[data-slot=slider-track]]:bg-zinc-700 [&_[data-slot=slider-range]]:bg-purple-500 [&_[data-slot=slider-thumb]]:border-purple-500 [&_[data-slot=slider-thumb]]:bg-zinc-900"
+          />
+        </div>
+
+        {/* Duration */}
+        <span className="font-mono text-sm text-zinc-400 w-14 tabular-nums">
+          {formatTime(duration)}
+        </span>
+      </div>
+
+      {/* Controls Row */}
+      <div className="flex items-center justify-between gap-4">
+        {/* Track Isolation - Left Side */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-zinc-500 uppercase tracking-wider mr-2 hidden sm:inline">
+            Tracks
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onLeftHandToggle}
+            className={cn(
+              'rounded-full px-4 transition-all',
+              leftHandActive
+                ? 'bg-blue-600 border-blue-600 text-white hover:bg-blue-700 hover:text-white'
+                : 'bg-transparent border-zinc-700 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
+            )}
+          >
+            <Hand className="h-4 w-4 mr-1.5 scale-x-[-1]" />
+            <span className="hidden sm:inline">Left</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRightHandToggle}
+            className={cn(
+              'rounded-full px-4 transition-all',
+              rightHandActive
+                ? 'bg-green-600 border-green-600 text-white hover:bg-green-700 hover:text-white'
+                : 'bg-transparent border-zinc-700 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
+            )}
+          >
+            <Hand className="h-4 w-4 mr-1.5" />
+            <span className="hidden sm:inline">Right</span>
+          </Button>
+        </div>
+
+        {/* Primary Playback Controls - Center */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onStepBackward}
+            className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+          >
+            <SkipBack className="h-5 w-5" />
+            <span className="sr-only">Step Backward</span>
+          </Button>
+
+          <Button
+            size="lg"
+            onClick={onPlayPause}
+            className="bg-purple-600 hover:bg-purple-700 text-white rounded-full w-14 h-14 shadow-lg shadow-purple-600/25"
+          >
+            {isPlaying ? (
+              <Pause className="h-6 w-6" />
+            ) : (
+              <Play className="h-6 w-6 ml-0.5" />
+            )}
+            <span className="sr-only">{isPlaying ? 'Pause' : 'Play'}</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onStop}
+            className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+          >
+            <Square className="h-5 w-5" />
+            <span className="sr-only">Stop</span>
+          </Button>
+        </div>
+
+        {/* Settings, Volume & Tempo - Right Side */}
+        <div className="flex items-center gap-4">
+          {/* Volume Slider */}
+          <div className="hidden sm:flex items-center gap-2">
+            {volume === 0 ? (
+              <VolumeX className="w-4 h-4 text-zinc-500" />
+            ) : (
+              <Volume2 className="w-4 h-4 text-zinc-500" />
+            )}
+            <Slider
+              value={[volume]}
+              min={0}
+              max={127}
+              step={1}
+              onValueChange={(value) => onVolumeChange(value[0])}
+              className="w-20 [&_[data-slot=slider-track]]:bg-zinc-700 [&_[data-slot=slider-range]]:bg-zinc-500 [&_[data-slot=slider-thumb]]:border-zinc-500"
+            />
+          </div>
+
+          {/* Tempo Slider */}
+          <div className="hidden md:flex items-center gap-2">
+            <span className="text-xs text-zinc-500 uppercase tracking-wider">
+              Tempo
+            </span>
+            <Slider
+              value={[tempo]}
+              min={50}
+              max={200}
+              step={5}
+              onValueChange={(value) => onTempoChange(value[0])}
+              className="w-24 [&_[data-slot=slider-track]]:bg-zinc-700 [&_[data-slot=slider-range]]:bg-zinc-500 [&_[data-slot=slider-thumb]]:border-zinc-500"
+            />
+            <span className="font-mono text-sm text-zinc-400 w-12 tabular-nums">
+              {tempo}%
+            </span>
+          </div>
+
+          {/* Key/Transpose Dropdown */}
+          <div className="hidden lg:flex items-center gap-2">
+            <span className="text-xs text-zinc-500 uppercase tracking-wider">
+              Key
+            </span>
+            <Select defaultValue="0">
+              <SelectTrigger className="w-20 h-8 bg-zinc-800 border-zinc-700 text-zinc-300">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-800 border-zinc-700">
+                {Array.from({ length: 25 }, (_, i) => i - 12).map((semitone) => (
+                  <SelectItem
+                    key={semitone}
+                    value={semitone.toString()}
+                    className="text-zinc-300"
+                  >
+                    {semitone > 0 ? `+${semitone}` : semitone}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const MemoizedTransportBar = React.memo(TransportBarBase)
+export { MemoizedTransportBar as TransportBar }
+export default MemoizedTransportBar
+</file>
+
+<file path="lib/engine/NotePool.ts">
+/**
+ * NotePool — Object Pool for PixiJS Sprites (Zero GC)
+ *
+ * CRITICAL RULES:
+ * 1. Pre-allocate all sprites on startup
+ * 2. NEVER use `new` or `.destroy()` inside the render loop
+ * 3. acquire() / release() to manage active/inactive sprites
+ */
+
+import { Container, Graphics, RenderTexture, Sprite } from 'pixi.js'
+import type { Application } from 'pixi.js'
+
+export class NotePool {
+    private pool: Sprite[] = []
+    private activeCount = 0
+    private container: Container
+    private noteTexture: RenderTexture | null = null
+
+    constructor(
+        private app: Application,
+        private poolSize: number = 1500
+    ) {
+        this.container = new Container()
+        this.container.label = 'note-pool'
+        this.app.stage.addChild(this.container)
+    }
+
+    /**
+     * Initialize the pool: bake the note texture and pre-allocate sprites.
+     * Call once after the app is initialized.
+     */
+    async init(): Promise<void> {
+        // ─── Bake the 2.5D Note Texture ──────────────────────────────
+        // Pre-render a rounded rectangle with gradient and inner shadow
+        this.noteTexture = this.bakeNoteTexture()
+
+        // ─── Pre-allocate Sprites ────────────────────────────────────
+        for (let i = 0; i < this.poolSize; i++) {
+            const sprite = new Sprite(this.noteTexture)
+            sprite.visible = false
+            sprite.label = `note-${i}`
+            this.container.addChild(sprite)
+            this.pool.push(sprite)
+        }
+
+        console.log(`[SynthUI] NotePool initialized: ${this.poolSize} sprites pre-allocated`)
+    }
+
+    /**
+     * Bake a reusable note texture with 2.5D appearance.
+     * This creates a rounded rectangle with a vertical gradient,
+     * inner highlight, and subtle shadow.
+     */
+    private bakeNoteTexture(): RenderTexture {
+        const width = 64
+        const height = 64
+        const radius = 6
+
+        const g = new Graphics()
+
+        // Main body with subtle gradient effect using layered fills
+        // Base (darker)
+        g.roundRect(0, 0, width, height, radius)
+        g.fill({ color: 0xFFFFFF, alpha: 0.9 })
+
+        // Inner highlight (top portion for 3D effect)
+        g.roundRect(1, 1, width - 2, height * 0.4, radius)
+        g.fill({ color: 0xFFFFFF, alpha: 0.3 })
+
+        // Inner shadow (bottom edge)
+        g.roundRect(1, height * 0.7, width - 2, height * 0.28, radius)
+        g.fill({ color: 0x000000, alpha: 0.15 })
+
+        // Subtle border
+        g.roundRect(0.5, 0.5, width - 1, height - 1, radius)
+        g.stroke({ color: 0xFFFFFF, width: 0.5, alpha: 0.2 })
+
+        const texture = RenderTexture.create({ width, height })
+        this.app.renderer.render({ container: g, target: texture })
+        g.destroy()
+
+        return texture
+    }
+
+    /**
+     * Acquire a sprite from the pool. Returns null if pool is exhausted.
+     * ZERO ALLOCATION — just makes an existing sprite visible.
+     */
+    acquire(): Sprite | null {
+        if (this.activeCount >= this.poolSize) return null
+
+        const sprite = this.pool[this.activeCount]
+        sprite.visible = true
+        this.activeCount++
+        return sprite
+    }
+
+    /**
+     * Release ALL sprites back to the pool (hide them all).
+     * Called at the beginning of each render frame.
+     */
+    releaseAll(): void {
+        for (let i = 0; i < this.activeCount; i++) {
+            this.pool[i].visible = false
+        }
+        this.activeCount = 0
+    }
+
+    /**
+     * Get the container for z-ordering.
+     */
+    getContainer(): Container {
+        return this.container
+    }
+
+    /**
+     * Cleanup.
+     */
+    destroy(): void {
+        this.container.destroy({ children: true })
+        if (this.noteTexture) {
+            this.noteTexture.destroy(true)
+            this.noteTexture = null
+        }
+    }
+}
+</file>
+
+<file path="lib/engine/PlaybackManager.ts">
+/**
+ * PlaybackManager — Master Clock (Singleton, outside React)
+ *
+ * CRITICAL DESIGN RULES:
+ * 1. This class is NEVER stored in React state
+ * 2. getTime() = audio-driven (for AudioSynth scheduling, authoritative)
+ * 3. getVisualTime() = performance.now()-driven with soft-sync to audio clock
+ *    (for PixiJS renderer — eliminates audio clock quantization jitter)
+ * 4. AudioContext is only created/resumed on user interaction (autoplay policy)
+ */
+
+type PlaybackListener = (time: number, isPlaying: boolean) => void
+
+export class PlaybackManager {
+    private audioContext: AudioContext | null = null
+    private _isPlaying = false
+
+    // Time tracking
+    // logicalTime = audioContextTimeAtPlay + (audioContext.currentTime - audioContextTimeAtPlay) * playbackRate
+    // Simplified: we track where in the song we are
+    private _songPosition = 0 // Where we are in the song (seconds)
+    private _playStartedAtCtx = 0 // AudioContext.currentTime when play was pressed
+    private _playbackRate = 1.0
+
+    // Hybrid visual clock (performance.now()-based, soft-synced to audio)
+    private _visualTime = 0
+    private _lastVisualTick = 0
+
+    // Song data
+    private _duration = 0
+
+    // Listeners (for PixiJS ticker to poll)
+    private listeners: Set<PlaybackListener> = new Set()
+
+    // ─── AudioContext Management ──────────────────────────────────
+
+    /**
+     * Get or create AudioContext. MUST only be called from a user gesture handler.
+     */
+    getAudioContext(): AudioContext {
+        if (!this.audioContext) {
+            this.audioContext = new AudioContext()
+        }
+        return this.audioContext
+    }
+
+    /**
+     * Ensure AudioContext is resumed (required after user gesture).
+     */
+    async ensureResumed(): Promise<void> {
+        const ctx = this.getAudioContext()
+        if (ctx.state === 'suspended') {
+            await ctx.resume()
+        }
+    }
+
+    // ─── Playback Control ─────────────────────────────────────────
+
+    get isPlaying(): boolean {
+        return this._isPlaying
+    }
+
+    get duration(): number {
+        return this._duration
+    }
+
+    set duration(d: number) {
+        this._duration = d
+    }
+
+    get playbackRate(): number {
+        return this._playbackRate
+    }
+
+    /**
+     * Get the current logical playback time in seconds.
+     * Audio-driven — used by AudioSynth for scheduling.
+     */
+    getTime(): number {
+        if (!this._isPlaying || !this.audioContext) {
+            return this._songPosition
+        }
+
+        const elapsed = (this.audioContext.currentTime - this._playStartedAtCtx) * this._playbackRate
+        const t = this._songPosition + elapsed
+
+        // Clamp to duration
+        if (t >= this._duration) {
+            this._songPosition = this._duration
+            this._isPlaying = false
+            this.notifyListeners()
+            return this._duration
+        }
+
+        return t
+    }
+
+    /**
+     * Get smooth visual playback time for the PixiJS renderer.
+     * Uses performance.now() for butter-smooth frame interpolation,
+     * soft-synced to the audio clock via rubber-banding to prevent drift.
+     *
+     * ONLY used by WaterfallRenderer. AudioSynth uses getTime().
+     */
+    getVisualTime(): number {
+        if (!this._isPlaying || !this.audioContext) {
+            return this._songPosition
+        }
+
+        // 1. Raw audio time (authoritative but quantized)
+        const audioElapsed = (this.audioContext.currentTime - this._playStartedAtCtx) * this._playbackRate
+        const trueAudioTime = this._songPosition + audioElapsed
+
+        // 2. Smooth visual time (high-precision, every frame)
+        const now = performance.now()
+        const deltaSec = (now - this._lastVisualTick) / 1000
+        this._lastVisualTick = now
+        this._visualTime += deltaSec * this._playbackRate
+
+        // 3. Drift correction (rubber-band to audio clock)
+        const drift = trueAudioTime - this._visualTime
+        if (Math.abs(drift) > 0.05) {
+            // Snap if tab was backgrounded or large desync
+            this._visualTime = trueAudioTime
+        } else {
+            // MICRO-SYNC: Only absorb 1% of the drift per frame to eliminate sawtooth jitter.
+            this._visualTime += drift * 0.01
+        }
+
+        if (this._visualTime >= this._duration) return this._duration
+        return this._visualTime
+    }
+
+    /**
+     * Start or resume playback from current position.
+     */
+    async play(): Promise<void> {
+        if (this._isPlaying) return
+
+        await this.ensureResumed()
+        const ctx = this.getAudioContext()
+
+        this._playStartedAtCtx = ctx.currentTime
+        // Sync visual clock
+        this._lastVisualTick = performance.now()
+        this._visualTime = this._songPosition
+        this._isPlaying = true
+        this.notifyListeners()
+    }
+
+    /**
+     * Pause playback, preserving current position.
+     */
+    pause(): void {
+        if (!this._isPlaying) return
+
+        // Capture current position before stopping
+        this._songPosition = this.getTime()
+        this._visualTime = this._songPosition
+        this._isPlaying = false
+        this.notifyListeners()
+    }
+
+    /**
+     * Stop playback and reset to beginning.
+     */
+    stop(): void {
+        this._songPosition = 0
+        this._visualTime = 0
+        this._isPlaying = false
+        this.notifyListeners()
+    }
+
+    /**
+     * Seek to a specific time in the song.
+     * Works whether playing or paused.
+     */
+    seek(timeSec: number): void {
+        const wasPlaying = this._isPlaying
+
+        // Clamp to valid range
+        this._songPosition = Math.max(0, Math.min(timeSec, this._duration))
+
+        if (wasPlaying && this.audioContext) {
+            // Reset the play reference point
+            this._playStartedAtCtx = this.audioContext.currentTime
+            // Sync visual clock
+            this._lastVisualTick = performance.now()
+        }
+        this._visualTime = this._songPosition
+
+        this.notifyListeners()
+    }
+
+    /**
+     * Set playback rate (tempo multiplier). 1.0 = normal speed.
+     */
+    setPlaybackRate(rate: number): void {
+        if (this._isPlaying) {
+            // Capture current position at old rate, then resume at new rate
+            this._songPosition = this.getTime()
+            if (this.audioContext) {
+                this._playStartedAtCtx = this.audioContext.currentTime
+            }
+            // Sync visual clock
+            this._lastVisualTick = performance.now()
+            this._visualTime = this._songPosition
+        }
+        this._playbackRate = rate
+    }
+
+    // ─── Listeners ────────────────────────────────────────────────
+
+    addListener(fn: PlaybackListener): () => void {
+        this.listeners.add(fn)
+        return () => this.listeners.delete(fn)
+    }
+
+    private notifyListeners(): void {
+        const time = this.getTime()
+        for (const fn of this.listeners) {
+            fn(time, this._isPlaying)
+        }
+    }
+
+    // ─── Cleanup ──────────────────────────────────────────────────
+
+    async destroy(): Promise<void> {
+        this._isPlaying = false
+        this.listeners.clear()
+        if (this.audioContext) {
+            await this.audioContext.close()
+            this.audioContext = null
+        }
+    }
+}
+
+// ─── Singleton ──────────────────────────────────────────────────
+
+let _instance: PlaybackManager | null = null
+
+export function getPlaybackManager(): PlaybackManager {
+    if (!_instance) {
+        _instance = new PlaybackManager()
+    }
+    return _instance
+}
+
+export function destroyPlaybackManager(): void {
+    if (_instance) {
+        _instance.destroy()
+        _instance = null
+    }
+}
+</file>
+
+<file path="lib/types.ts">
+// TypeScript interfaces for SynthUI
+// Core application types
+
+// ─── MIDI Data Types ───────────────────────────────────────────────
+
+/** A single normalized MIDI note event with absolute timing */
+export interface NoteEvent {
+  id: string
+  /** MIDI pitch: 21 (A0) to 108 (C8) */
+  pitch: number
+  /** Absolute start time in seconds */
+  startTimeSec: number
+  /** Absolute end time in seconds */
+  endTimeSec: number
+  /** Duration in seconds */
+  durationSec: number
+  /** Note velocity (0-127) */
+  velocity: number
+  /** Track index from MIDI file */
+  trackId: number
+}
+
+/** Parsed MIDI file data */
+export interface ParsedMidi {
+  /** Song/file name */
+  name: string
+  /** Total duration in seconds */
+  durationSec: number
+  /** Flattened, sorted (by startTimeSec) note events */
+  notes: NoteEvent[]
+  /** Number of tracks */
+  trackCount: number
+  /** Tempo map entries */
+  tempoChanges: { time: number; bpm: number }[]
+}
+
+// ─── UI Component Props ────────────────────────────────────────────
+
+export interface AppState {
+  isPlaying: boolean
+  currentTime: number
+  duration: number
+  tempo: number
+  leftHandActive: boolean
+  rightHandActive: boolean
+  songTitle: string
+}
+
+export interface PianoKeyProps {
+  noteNumber: number
+  isBlack: boolean
+  leftOffset?: number
+}
+
+export interface TransportBarProps {
+  isPlaying: boolean
+  currentTime: number
+  duration: number
+  tempo: number
+  volume: number
+  leftHandActive: boolean
+  rightHandActive: boolean
+  onPlayPause: () => void
+  onStop: () => void
+  onStepBackward: () => void
+  onTimeChange: (time: number) => void
+  onTempoChange: (tempo: number) => void
+  onVolumeChange: (volume: number) => void
+  onLeftHandToggle: () => void
+  onRightHandToggle: () => void
+}
+
+export interface ToolbarProps {
+  songTitle: string
+  onLoadMidi: () => void
+  onOpenSettings: () => void
+}
+</file>
+
+<file path="next.config.mjs">
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: false, // Prevents double-mount leaking phantom WebGL canvases
+  output: 'export',
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  images: {
+    unoptimized: true,
+  },
+}
+
+export default nextConfig
+</file>
+
+<file path="lib/engine/AudioSynth.ts">
+/**
+ * AudioSynth — Piano Soundfont Playback via smplr
+ *
+ * DESIGN RULES:
+ * 1. AudioContext only created on user interaction (autoplay policy)
+ * 2. Supports track muting (left/right hand)
+ * 3. Uses a GainNode for instant mute/unmute on stop
+ */
+
+import type { NoteEvent } from '../types'
+
+// smplr types based on actual API (v0.18.x)
+interface SmplrSoundfont {
+    start: (opts: {
+        note: number
+        velocity?: number
+        time?: number
+        duration?: number | null
+    }) => (() => void)
+    stop: (opts?: { stopId?: string | number; time?: number } | string | number) => void
+    loaded: () => Promise<unknown>
+    output: { setVolume: (vol: number) => void }
+    load: Promise<unknown>
+    disconnect: () => void
+}
+
+export class AudioSynth {
+    private soundfont: SmplrSoundfont | null = null
+    private audioContext: AudioContext
+    private _loaded = false
+    private _loading = false
+    private _volume = 100
+
+    // Master gain node for instant stop
+    private masterGain: GainNode
+
+    // Dedup: track which notes have already been scheduled
+    private scheduledNotes = new Set<string>()
+
+    constructor(audioContext: AudioContext) {
+        this.audioContext = audioContext
+        // Create a master gain node between smplr output and destination
+        this.masterGain = audioContext.createGain()
+        this.masterGain.connect(audioContext.destination)
+    }
+
+    get loaded(): boolean {
+        return this._loaded
+    }
+
+    /**
+     * Load the piano soundfont.
+     */
+    async load(): Promise<void> {
+        if (this._loaded || this._loading) return
+        this._loading = true
+
+        try {
+            console.log('[SynthUI Audio] Loading piano soundfont...')
+            const { Soundfont: SoundfontClass } = await import('smplr')
+
+            this.soundfont = new SoundfontClass(this.audioContext, {
+                instrument: 'acoustic_grand_piano',
+                destination: this.masterGain, // Route through our gain node
+            }) as unknown as SmplrSoundfont
+
+            await this.soundfont.loaded()
+            this._loaded = true
+            console.log('[SynthUI Audio] ✅ Piano soundfont loaded')
+        } catch (err) {
+            console.error('[SynthUI Audio] ❌ Failed to load soundfont:', err)
+            this._loading = false
+            throw err
+        }
+    }
+
+    /**
+     * Play a single test note.
+     */
+    playTestNote(pitch: number = 60): void {
+        if (!this.soundfont || !this._loaded) return
+        // Unmute in case it was muted
+        this.masterGain.gain.cancelScheduledValues(this.audioContext.currentTime)
+        this.masterGain.gain.setValueAtTime(this._volume / 127, this.audioContext.currentTime)
+        this.soundfont.start({ note: pitch, velocity: 100, duration: 0.5 })
+    }
+
+    /**
+     * Schedule notes for playback.
+     */
+    scheduleNotes(
+        notes: NoteEvent[],
+        songStartCtxTime: number,
+        songOffset: number,
+        playbackRate: number,
+        mutedTracks: Set<number>
+    ): number {
+        if (!this.soundfont || !this._loaded) return 0
+
+        // Ensure gain is at normal level when scheduling
+        this.masterGain.gain.cancelScheduledValues(this.audioContext.currentTime)
+        this.masterGain.gain.setValueAtTime(this._volume / 127, this.audioContext.currentTime)
+
+        const ctx = this.audioContext
+        let scheduled = 0
+
+        // Binary search: find first note that starts at or after current position
+        // Notes are sorted by startTimeSec
+        const searchStart = songOffset - 0.1
+        let lo = 0
+        let hi = notes.length
+        while (lo < hi) {
+            const mid = (lo + hi) >>> 1
+            if (notes[mid].startTimeSec < searchStart) {
+                lo = mid + 1
+            } else {
+                hi = mid
+            }
+        }
+
+        // Only iterate notes in the scheduling window
+        const maxLookahead = ctx.currentTime + 4
+        for (let i = lo; i < notes.length; i++) {
+            const note = notes[i]
+            const noteStartInSong = note.startTimeSec - songOffset
+            const ctxTime = songStartCtxTime + (noteStartInSong / playbackRate)
+
+            // Past scheduling window — stop scanning
+            if (ctxTime > maxLookahead) break
+
+            if (mutedTracks.has(note.trackId)) continue
+            if (this.scheduledNotes.has(note.id)) continue
+            if (note.endTimeSec <= songOffset) continue
+            if (noteStartInSong < -0.1) continue
+
+            const duration = note.durationSec / playbackRate
+
+            try {
+                this.soundfont.start({
+                    note: note.pitch,
+                    velocity: note.velocity,
+                    time: Math.max(ctxTime, ctx.currentTime),
+                    duration: Math.max(duration, 0.05),
+                })
+                scheduled++
+                this.scheduledNotes.add(note.id)
+            } catch {
+                // Ignore
+            }
+        }
+
+        return scheduled
+    }
+
+    /**
+     * INSTANT STOP: Kill all audio immediately using the master GainNode.
+     * This is much more reliable than smplr's .stop() because it kills
+     * both currently-playing AND future-scheduled notes.
+     */
+    stopAll(): void {
+        // Instantly ramp gain to 0 (kills all audio in ~20ms)
+        const now = this.audioContext.currentTime
+        this.masterGain.gain.cancelScheduledValues(now)
+        this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, now)
+        this.masterGain.gain.linearRampToValueAtTime(0, now + 0.02)
+
+        // Also tell smplr to stop
+        if (this.soundfont) {
+            try {
+                this.soundfont.stop()
+            } catch {
+                // Ignore
+            }
+        }
+
+        // Clear dedup set so notes can be re-scheduled after stop/seek
+        this.scheduledNotes.clear()
+    }
+
+    setVolume(v: number): void {
+        this._volume = Math.max(0, Math.min(127, v))
+        // Update gain node directly
+        const now = this.audioContext.currentTime
+        this.masterGain.gain.cancelScheduledValues(now)
+        this.masterGain.gain.setValueAtTime(this._volume / 127, now)
+    }
+
+    destroy(): void {
+        this.stopAll()
+        if (this.soundfont) {
+            try { this.soundfont.disconnect() } catch { /* ignore */ }
+        }
+        this.soundfont = null
+        this.masterGain.disconnect()
+        this._loaded = false
+        this._loading = false
+    }
+}
+</file>
+
+<file path="lib/engine/WaterfallRenderer.ts">
+/**
+ * WaterfallRenderer — PixiJS Canvas + Zero-Allocation Render Loop
+ *
+ * PERFORMANCE RULES:
+ * 1. ZERO object allocations in renderFrame() — all reusable vars pre-allocated
+ * 2. DOM key elements cached at init — no getElementById in hot loop
+ * 3. Binary search culling — only process visible notes
+ * 4. Object pool — sprite acquire/release with no new/destroy
+ * 5. All per-frame math uses pre-allocated primitives
+ */
+
+import { Application, Graphics, Container } from 'pixi.js'
+import type { NoteEvent, ParsedMidi } from '../types'
+import { NotePool } from './NotePool'
+import {
+    calculatePianoMetricsFromDOM,
+    calculatePianoMetrics,
+    isBlackKey,
+    MIDI_MIN,
+    MIDI_MAX,
+    type PianoMetrics,
+} from './pianoMetrics'
+import type { PlaybackManager } from './PlaybackManager'
+
+// ─── Track Colors ────────────────────────────────────────────────
+
+const TRACK_COLORS: number[] = [
+    0x22c55e, // Track 0: Green (right hand / treble)
+    0x3b82f6, // Track 1: Blue (left hand / bass)
+    0xf59e0b, // Track 2: Amber
+    0xef4444, // Track 3: Red
+    0xa855f7, // Track 4: Purple
+]
+const DEFAULT_COLOR = 0xa855f7
+
+const ACTIVE_ALPHA = 0.95
+const INACTIVE_ALPHA = 0.75
+
+export class WaterfallRenderer {
+    private app: Application | null = null
+    private notePool: NotePool | null = null
+    private playbackManager: PlaybackManager
+
+    // Canvas config
+    private canvasContainer: HTMLElement
+    private resizeObserver: ResizeObserver | null = null
+
+    // Pre-computed layout (no per-frame allocation)
+    private pixelsPerSecond = 200
+    private strikeLineY = 0
+    private canvasHeight = 0
+    private canvasWidth = 0
+
+    // Piano metrics (recomputed on resize only)
+    private keyX: Float64Array = new Float64Array(128) // indexed by MIDI pitch
+    private keyW: Float64Array = new Float64Array(128) // indexed by MIDI pitch
+    private keyValid: Uint8Array = new Uint8Array(128) // 1 = valid
+
+    // Strike line visual
+    private strikeLineGraphics: Graphics | null = null
+
+    // ─── CACHED DOM ELEMENTS (no getElementById in hot loop) ──────
+    private keyElements: (HTMLElement | null)[] = new Array(128).fill(null)
+
+    // Active notes tracking — pre-allocated typed arrays for zero GC
+    // Use Uint8Arrays indexed by MIDI pitch (128 values) instead of Sets
+    private activeThisFrame: Uint8Array = new Uint8Array(128)
+    private activeLastFrame: Uint8Array = new Uint8Array(128)
+
+    // Data
+    private notes: NoteEvent[] = []
+    private leftHandActive = true
+    private rightHandActive = true
+
+    // Bound render function (avoid re-binding per frame)
+    private boundRenderFrame: () => void
+
+    // FPS diagnostic
+    private frameCount = 0
+    private lastFpsTime = 0
+
+    constructor(
+        canvasContainer: HTMLElement,
+        playbackManager: PlaybackManager
+    ) {
+        this.canvasContainer = canvasContainer
+        this.playbackManager = playbackManager
+        this.boundRenderFrame = this.renderFrame.bind(this)
+    }
+
+    /**
+     * Initialize the PixiJS application and mount it into the container.
+     */
+    async init(): Promise<void> {
+        this.app = new Application()
+
+        await this.app.init({
+            preference: 'webgl',
+            powerPreference: 'high-performance',
+            antialias: false, // Notes are rectangles — AA wastes GPU at Retina resolution
+            resolution: window.devicePixelRatio || 1,
+            autoDensity: true,
+            backgroundAlpha: 0,
+            resizeTo: this.canvasContainer,
+        })
+
+        // Mount canvas
+        const canvas = this.app.canvas as HTMLCanvasElement
+        canvas.style.position = 'absolute'
+        canvas.style.top = '0'
+        canvas.style.left = '0'
+        canvas.style.width = '100%'
+        canvas.style.height = '100%'
+        this.canvasContainer.appendChild(canvas)
+
+        // Strike line
+        this.strikeLineGraphics = new Graphics()
+        this.strikeLineGraphics.label = 'strike-line'
+        this.app.stage.addChild(this.strikeLineGraphics)
+
+        // Note pool
+        this.notePool = new NotePool(this.app, 1500)
+        await this.notePool.init()
+
+        // Cache all piano key DOM elements
+        this.cacheKeyElements()
+
+        // Initial layout
+        this.recalculateLayout()
+
+        // ResizeObserver
+        this.resizeObserver = new ResizeObserver(() => {
+            this.recalculateLayout()
+            this.cacheKeyElements() // re-cache in case DOM changed
+        })
+        this.resizeObserver.observe(this.canvasContainer)
+
+        // Start render loop
+        this.app.ticker.add(this.boundRenderFrame)
+
+        console.log('[SynthUI] WaterfallRenderer initialized (zero-alloc render loop)')
+    }
+
+    /**
+     * Cache all 88 piano key DOM elements so we never call getElementById in the hot loop.
+     */
+    private cacheKeyElements(): void {
+        for (let pitch = MIDI_MIN; pitch <= MIDI_MAX; pitch++) {
+            this.keyElements[pitch] = document.getElementById(`key-${pitch}`)
+        }
+    }
+
+    /**
+     * Recalculate layout when window resizes.
+     */
+    private recalculateLayout(): void {
+        if (!this.app) return
+
+        const rect = this.canvasContainer.getBoundingClientRect()
+
+        // CRITICAL: Prevent infinite layout reflow thrashing
+        if (this.canvasWidth === rect.width && this.canvasHeight === rect.height) {
+            return
+        }
+
+        this.canvasWidth = rect.width
+        this.canvasHeight = rect.height
+        this.strikeLineY = this.canvasHeight - 4
+
+        // Recalculate piano metrics
+        const parent = this.canvasContainer.parentElement?.parentElement || this.canvasContainer
+        const metrics =
+            calculatePianoMetricsFromDOM(parent) ||
+            calculatePianoMetrics(this.canvasWidth)
+
+        // Flatten into typed arrays for zero-alloc render loop access
+        this.keyValid.fill(0)
+        for (let pitch = MIDI_MIN; pitch <= MIDI_MAX; pitch++) {
+            const key = metrics.keys.get(pitch)
+            if (key) {
+                this.keyX[pitch] = key.x
+                this.keyW[pitch] = key.width
+                this.keyValid[pitch] = 1
+            }
+        }
+
+        this.drawStrikeLine()
+    }
+
+    private drawStrikeLine(): void {
+        if (!this.strikeLineGraphics) return
+        this.strikeLineGraphics.clear()
+
+        // Main line
+        this.strikeLineGraphics.rect(0, this.strikeLineY - 1, this.canvasWidth, 2)
+        this.strikeLineGraphics.fill({ color: 0xffffff, alpha: 0.15 })
+
+        // Glow
+        this.strikeLineGraphics.rect(0, this.strikeLineY - 3, this.canvasWidth, 6)
+        this.strikeLineGraphics.fill({ color: 0xa855f7, alpha: 0.08 })
+    }
+
+    loadNotes(midi: ParsedMidi): void {
+        this.notes = midi.notes
+    }
+
+    setTrackVisibility(leftHand: boolean, rightHand: boolean): void {
+        this.leftHandActive = leftHand
+        this.rightHandActive = rightHand
+    }
+
+    setZoom(pps: number): void {
+        this.pixelsPerSecond = pps
+    }
+
+    // ─── THE RENDER LOOP (ZERO ALLOCATIONS) ──────────────────────
+
+    /**
+     * Called every frame by PIXI.Ticker.
+     * ALL variables are pre-allocated class fields or stack primitives.
+     * NO object literals, NO .push(), NO new anything.
+     */
+    private renderFrame(): void {
+        if (!this.notePool || this.notes.length === 0) return
+
+        const time = this.playbackManager.getVisualTime()
+        const pps = this.pixelsPerSecond
+        const strikeY = this.strikeLineY
+        const canvasH = this.canvasHeight
+        const lookaheadSec = canvasH / pps
+        const notes = this.notes
+
+        // ─── Release all sprites ───────────────────────────────────
+        this.notePool.releaseAll()
+
+        // ─── Swap active note tracking (zero-alloc) ────────────────
+        const temp = this.activeLastFrame
+        this.activeLastFrame = this.activeThisFrame
+        this.activeThisFrame = temp
+        this.activeThisFrame.fill(0)
+
+        // ─── Binary search: find first visible note ────────────────
+        const windowStart = time - 0.5
+        const windowEnd = time + lookaheadSec
+
+        // We MUST search by startTimeSec because the array is sorted by startTimeSec.
+        // Look back 10 seconds to catch any long-held notes that started in the past.
+        const searchTime = Math.max(0, windowStart - 10.0)
+        let lo = 0
+        let hi = notes.length
+        while (lo < hi) {
+            const mid = (lo + hi) >>> 1
+            if (notes[mid].startTimeSec < searchTime) {
+                lo = mid + 1
+            } else {
+                hi = mid
+            }
+        }
+
+        // ─── Render visible notes ──────────────────────────────────
+        for (let i = lo; i < notes.length; i++) {
+            const note = notes[i]
+
+            // Safe to break because array is properly sorted by startTimeSec
+            if (note.startTimeSec > windowEnd) break
+
+            // Skip notes that already ended before our look-behind window
+            if (note.endTimeSec < windowStart) continue
+
+            // Track muting
+            if (!this.rightHandActive && note.trackId === 0) continue
+            if (!this.leftHandActive && note.trackId === 1) continue
+
+            // Skip if pitch has no valid key mapping
+            if (!this.keyValid[note.pitch]) continue
+
+            // ─── Inline Y/Height math (no function call, no object alloc) ─
+            const timeUntilStart = note.startTimeSec - time
+            const noteBottomY = strikeY - (timeUntilStart * pps)
+            const noteHeight = note.durationSec * pps
+            const noteTopY = noteBottomY - noteHeight
+
+            // Visibility check (all stack primitives)
+            if ((noteTopY + noteHeight) < 0 || noteTopY > canvasH) continue
+
+            // ─── Acquire sprite ──────────────────────────────────────
+            const sprite = this.notePool.acquire()
+            if (!sprite) break
+
+            // ─── Position (Sub-pixel Y for 120Hz smooth scrolling) ────────────────
+            sprite.x = Math.round(this.keyX[note.pitch]) // X stays rounded to align with CSS keys
+            sprite.y = noteTopY // NO ROUNDING HERE! Let WebGL interpolate sub-pixels.
+
+            // NineSlice optimization: only assign dimensions if changed to prevent vertex rebuilding
+            const w = Math.round(this.keyW[note.pitch])
+            const h = Math.max(Math.round(noteHeight), 12)
+            if (Math.round(sprite.width) !== w) sprite.width = w
+            if (Math.round(sprite.height) !== h) sprite.height = h
+
+            // ─── Color & active state ────────────────────────────────
+            const color = TRACK_COLORS[note.trackId] ?? DEFAULT_COLOR
+            const active = time >= note.startTimeSec && time <= note.endTimeSec
+
+            if (active) {
+                this.activeThisFrame[note.pitch] = 1
+                sprite.tint = color
+                sprite.alpha = ACTIVE_ALPHA
+                // Slight glow expansion
+                sprite.x -= 1
+                sprite.width += 2
+            } else {
+                sprite.tint = color
+                sprite.alpha = INACTIVE_ALPHA
+            }
+        }
+
+        // ─── Key Bridge: cached DOM refs, no getElementById ────────
+        for (let pitch = MIDI_MIN; pitch <= MIDI_MAX; pitch++) {
+            const wasActive = this.activeLastFrame[pitch]
+            const isActive = this.activeThisFrame[pitch]
+
+            if (wasActive && !isActive) {
+                const el = this.keyElements[pitch]
+                if (el) el.dataset.active = 'false'
+            } else if (!wasActive && isActive) {
+                const el = this.keyElements[pitch]
+                if (el) el.dataset.active = 'true'
+            }
+        }
+
+        // ─── FPS Diagnostic (silent — enable console.log below to debug) ──
+        this.frameCount++
+        const now = performance.now()
+        if (now - this.lastFpsTime >= 2000) {
+            // const fps = (this.frameCount / ((now - this.lastFpsTime) / 1000)).toFixed(1)
+            // console.log(`[FPS] ${fps}fps`)  // Uncomment to debug FPS
+            this.frameCount = 0
+            this.lastFpsTime = now
+        }
+    }
+
+    // ─── Cleanup ─────────────────────────────────────────────────
+
+    destroy(): void {
+        if (this.app) {
+            this.app.ticker.remove(this.boundRenderFrame)
+        }
+
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect()
+            this.resizeObserver = null
+        }
+
+        // Deactivate all piano keys
+        for (let pitch = MIDI_MIN; pitch <= MIDI_MAX; pitch++) {
+            const el = this.keyElements[pitch]
+            if (el) el.dataset.active = 'false'
+        }
+
+        if (this.notePool) {
+            this.notePool.destroy()
+            this.notePool = null
+        }
+
+        if (this.app) {
+            const canvas = this.app.canvas
+            this.app.destroy(true, { children: true, texture: true })
+            if (canvas?.parentElement) {
+                canvas.parentElement.removeChild(canvas)
+            }
+            this.app = null
+        }
+
+        this.strikeLineGraphics = null
+        this.keyElements.fill(null)
+
+        console.log('[SynthUI] WaterfallRenderer destroyed')
+    }
+}
+</file>
+
+<file path="components/synthesia/AppLayout.tsx">
+'use client'
+
+import * as React from 'react'
+import { Toolbar } from './Toolbar'
+import { PianoKeyboard } from './PianoKeyboard'
+import { TransportBar } from './TransportBar'
+import { useSynthStore } from '@/lib/store'
+import { parseMidiFile } from '@/lib/midi/parser'
+import { getPlaybackManager, destroyPlaybackManager } from '@/lib/engine/PlaybackManager'
+import { AudioSynth } from '@/lib/engine/AudioSynth'
+import type { WaterfallRenderer } from '@/lib/engine/WaterfallRenderer'
+
+interface AppLayoutProps {
+  canvasContainerRef?: React.RefObject<HTMLDivElement | null>
+}
+
+export const AppLayout: React.FC<AppLayoutProps> = ({ canvasContainerRef }) => {
+  // ─── Zustand Store ──────────────────────────────────────────────
+  const isPlaying = useSynthStore((s) => s.isPlaying)
+  const tempo = useSynthStore((s) => s.tempo)
+  const leftHandActive = useSynthStore((s) => s.leftHandActive)
+  const rightHandActive = useSynthStore((s) => s.rightHandActive)
+  const songTitle = useSynthStore((s) => s.songTitle)
+  const duration = useSynthStore((s) => s.duration)
+  const parsedMidi = useSynthStore((s) => s.parsedMidi)
+
+  const setPlaying = useSynthStore((s) => s.setPlaying)
+  const setTempo = useSynthStore((s) => s.setTempo)
+  const toggleLeftHand = useSynthStore((s) => s.toggleLeftHand)
+  const toggleRightHand = useSynthStore((s) => s.toggleRightHand)
+  const loadMidi = useSynthStore((s) => s.loadMidi)
+
+  // ─── Local state ────────────────────────────────────────────────
+  const [volume, setVolume] = React.useState(100)
+
+  // ─── Refs (never trigger re-renders) ────────────────────────────
+  const audioSynthRef = React.useRef<AudioSynth | null>(null)
+  const rendererRef = React.useRef<WaterfallRenderer | null>(null)
+  const schedulerTimerRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
+  const displayRafRef = React.useRef<number>(0)
+  const lastDisplayUpdateRef = React.useRef<number>(0)
+
+  // Display time state — updated at ~5fps to minimize React re-renders
+  const [displayTime, setDisplayTime] = React.useState(0)
+  const [rendererReady, setRendererReady] = React.useState(false)
+
+  // ─── Canvas Container Ref ──────────────────────────────────────
+  const internalCanvasRef = React.useRef<HTMLDivElement>(null)
+  const containerRef = canvasContainerRef || internalCanvasRef
+
+  // ─── Initialize WaterfallRenderer (dynamic import, SSR-safe) ────
+  React.useEffect(() => {
+    let isCancelled = false
+    let localRenderer: WaterfallRenderer | null = null
+
+    const initRenderer = async () => {
+      const container = document.getElementById('pixi-canvas-container')
+      if (!container) return
+
+      try {
+        const { WaterfallRenderer: WR } = await import('@/lib/engine/WaterfallRenderer')
+        if (isCancelled) return
+        const pm = getPlaybackManager()
+        localRenderer = new WR(container, pm)
+        await localRenderer.init()
+
+        // CRITICAL FIX: If React unmounted us while waiting, destroy the phantom canvas immediately!
+        if (isCancelled) {
+          if (localRenderer) localRenderer.destroy()
+          return
+        }
+
+        rendererRef.current = localRenderer
+        setRendererReady(true)
+        console.log('[SynthUI] Renderer mounted and ready')
+      } catch (err) {
+        console.error('[SynthUI] Failed to initialize renderer:', err)
+      }
+    }
+
+    initRenderer()
+
+    return () => {
+      isCancelled = true // Prevent the async block from applying if it hasn't finished
+
+      if (rendererRef.current) {
+        rendererRef.current.destroy()
+        rendererRef.current = null
+      } else if (localRenderer) {
+        // Catch the race condition where init finished but ref wasn't set
+        localRenderer.destroy()
+        localRenderer = null
+      }
+
+      setRendererReady(false)
+    }
+  }, [])
+
+
+  // ─── Cleanup on unmount ─────────────────────────────────────────
+  React.useEffect(() => {
+    return () => {
+      if (displayRafRef.current) cancelAnimationFrame(displayRafRef.current)
+      if (schedulerTimerRef.current) clearInterval(schedulerTimerRef.current)
+      audioSynthRef.current?.destroy()
+      audioSynthRef.current = null
+      destroyPlaybackManager()
+    }
+  }, [])
+
+  // ─── Sync track visibility to renderer ──────────────────────────
+  React.useEffect(() => {
+    rendererRef.current?.setTrackVisibility(leftHandActive, rightHandActive)
+  }, [leftHandActive, rightHandActive])
+
+  // ─── Sync MIDI data to renderer ─────────────────────────────────
+  React.useEffect(() => {
+    if (parsedMidi && rendererRef.current) {
+      rendererRef.current.loadNotes(parsedMidi)
+    }
+  }, [parsedMidi, rendererReady])
+
+  // ─── Display Time Update Loop ───────────────────────────────────
+  // Update React state for transport bar at ~5fps to minimize jitter.
+  // The PixiJS renderer polls PlaybackManager directly at 60fps independently.
+  React.useEffect(() => {
+    const tick = (timestamp: number) => {
+      // Only update React state every 500ms (~2fps) to minimize main-thread re-renders
+      if (timestamp - lastDisplayUpdateRef.current > 500) {
+        lastDisplayUpdateRef.current = timestamp
+        const pm = getPlaybackManager()
+        const currentT = pm.getTime()
+        setDisplayTime(currentT)
+
+        // Sync isPlaying if PlaybackManager stopped (end of song)
+        if (!pm.isPlaying && isPlaying) {
+          setPlaying(false)
+        }
+      }
+      displayRafRef.current = requestAnimationFrame(tick)
+    }
+
+    if (isPlaying) {
+      displayRafRef.current = requestAnimationFrame(tick)
+    }
+
+    return () => {
+      if (displayRafRef.current) {
+        cancelAnimationFrame(displayRafRef.current)
+        displayRafRef.current = 0
+      }
+    }
+  }, [isPlaying, setPlaying])
+
+  // ─── Audio Note Scheduler ───────────────────────────────────────
+  React.useEffect(() => {
+    if (!isPlaying || !parsedMidi) return
+
+    const scheduleChunk = () => {
+      const pm = getPlaybackManager()
+      const synth = audioSynthRef.current
+      if (!synth?.loaded || !pm.isPlaying) return
+
+      const mutedTracks = new Set<number>()
+      if (!rightHandActive && parsedMidi.trackCount > 0) mutedTracks.add(0)
+      if (!leftHandActive && parsedMidi.trackCount > 1) mutedTracks.add(1)
+
+      const ctx = pm.getAudioContext()
+      const count = synth.scheduleNotes(
+        parsedMidi.notes,
+        ctx.currentTime,
+        pm.getTime(),
+        tempo / 100,
+        mutedTracks
+      )
+
+      if (count > 0 && false) { // Disabled: console.log stalls the main thread
+        console.log(`[SynthUI Audio] Scheduled ${count} notes`)
+      }
+    }
+
+    // Schedule immediately and then every 1.5 seconds
+    scheduleChunk()
+    schedulerTimerRef.current = setInterval(scheduleChunk, 1500)
+
+    return () => {
+      if (schedulerTimerRef.current) {
+        clearInterval(schedulerTimerRef.current)
+        schedulerTimerRef.current = null
+      }
+    }
+  }, [isPlaying, parsedMidi, tempo, leftHandActive, rightHandActive])
+
+  // ─── Hidden File Input for MIDI loading ─────────────────────────
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  const handleLoadMidi = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      const buffer = await file.arrayBuffer()
+      const parsed = parseMidiFile(buffer, file.name)
+      loadMidi(parsed)
+      setDisplayTime(0)
+
+      const pm = getPlaybackManager()
+      pm.duration = parsed.durationSec
+      pm.seek(0)
+
+      // Load notes into renderer
+      rendererRef.current?.loadNotes(parsed)
+
+      // Initialize audio on first user interaction (autoplay policy)
+      if (!audioSynthRef.current) {
+        console.log('[SynthUI Audio] Initializing audio on user interaction...')
+        await pm.ensureResumed()
+        console.log('[SynthUI Audio] AudioContext resumed, state:', pm.getAudioContext().state)
+        const synth = new AudioSynth(pm.getAudioContext())
+        await synth.load()
+        synth.setVolume(volume)
+        audioSynthRef.current = synth
+
+        // Play a test note to confirm audio works
+        synth.playTestNote(60)
+      }
+
+      console.log('[SynthUI] MIDI loaded:', parsed.name, `${parsed.notes.length} notes, ${parsed.durationSec.toFixed(1)}s`)
+    } catch (err) {
+      console.error('[SynthUI] Failed to parse MIDI file:', err)
+    }
+
+    e.target.value = ''
+  }
+
+  // ─── Transport Handlers ─────────────────────────────────────────
+  const handlePlayPause = async () => {
+    const pm = getPlaybackManager()
+
+    if (isPlaying) {
+      pm.pause()
+      audioSynthRef.current?.stopAll()
+      setPlaying(false)
+    } else {
+      if (!audioSynthRef.current) {
+        console.log('[SynthUI Audio] Initializing audio on Play...')
+        await pm.ensureResumed()
+        const synth = new AudioSynth(pm.getAudioContext())
+        await synth.load()
+        synth.setVolume(volume)
+        audioSynthRef.current = synth
+      }
+
+      pm.setPlaybackRate(tempo / 100)
+      await pm.play()
+      setPlaying(true)
+    }
+  }
+
+  // ─── Spacebar Play/Pause shortcut ─────────────────────────────────
+  const handlePlayPauseRef = React.useRef(handlePlayPause)
+  React.useEffect(() => { handlePlayPauseRef.current = handlePlayPause })
+
+  React.useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !e.repeat) {
+        // Don't trigger if user is typing in an input/textarea
+        const tag = (e.target as HTMLElement)?.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+        e.preventDefault()
+        handlePlayPauseRef.current()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
+  const handleStop = () => {
+    const pm = getPlaybackManager()
+    pm.stop()
+    audioSynthRef.current?.stopAll()
+    setPlaying(false)
+    setDisplayTime(0)
+  }
+
+  const handleStepBackward = () => {
+    const pm = getPlaybackManager()
+    audioSynthRef.current?.stopAll()
+    pm.seek(Math.max(0, pm.getTime() - 5))
+    setDisplayTime(pm.getTime())
+  }
+
+  const handleTimeChange = (time: number) => {
+    const pm = getPlaybackManager()
+    audioSynthRef.current?.stopAll()
+    pm.seek(time)
+    setDisplayTime(time)
+  }
+
+  const handleTempoChange = (newTempo: number) => {
+    setTempo(newTempo)
+    const pm = getPlaybackManager()
+    pm.setPlaybackRate(newTempo / 100)
+  }
+
+  const handleVolumeChange = (newVolume: number) => {
+    setVolume(newVolume)
+    audioSynthRef.current?.setVolume(newVolume)
+  }
+
+  const handleOpenSettings = () => {
+    console.log('[SynthUI] Settings clicked')
+  }
+
+  return (
+    <div className="h-screen w-screen overflow-hidden bg-zinc-950 text-slate-200 flex flex-col">
+      {/* Hidden file input for MIDI loading */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".mid,.midi"
+        className="hidden"
+        onChange={handleFileSelect}
+      />
+
+      {/* Top Toolbar */}
+      <Toolbar
+        songTitle={songTitle}
+        onLoadMidi={handleLoadMidi}
+        onOpenSettings={handleOpenSettings}
+      />
+
+      {/* The Graphics Shell - Canvas Mount Point */}
+      <div className="flex-1 relative" style={{ height: '65vh' }}>
+        <div
+          id="pixi-canvas-container"
+          ref={containerRef}
+          className="relative w-full h-full z-0 bg-black/50"
+        >
+          {/* Placeholder - hidden once renderer is ready */}
+          {!rendererReady && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="text-center space-y-4 opacity-30">
+                <div className="w-16 h-16 mx-auto rounded-full border-2 border-dashed border-zinc-600 flex items-center justify-center">
+                  <div className="w-3 h-3 rounded-full bg-purple-500 animate-pulse" />
+                </div>
+                <p className="text-zinc-600 text-sm font-medium">
+                  Initializing engine...
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Piano Keyboard */}
+      <PianoKeyboard />
+
+      {/* Transport Bar Controls */}
+      <TransportBar
+        isPlaying={isPlaying}
+        currentTime={displayTime}
+        duration={duration}
+        tempo={tempo}
+        volume={volume}
+        leftHandActive={leftHandActive}
+        rightHandActive={rightHandActive}
+        onPlayPause={handlePlayPause}
+        onStop={handleStop}
+        onStepBackward={handleStepBackward}
+        onTimeChange={handleTimeChange}
+        onTempoChange={handleTempoChange}
+        onVolumeChange={handleVolumeChange}
+        onLeftHandToggle={toggleLeftHand}
+        onRightHandToggle={toggleRightHand}
+      />
+    </div>
+  )
+}
+
+export default AppLayout
+</file>
+
+</files>
